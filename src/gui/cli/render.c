@@ -6,7 +6,7 @@
  * стартового экрана, границ, поля, информации и состояния паузы.
  */
 
-#include "../../../include/brickgame/frontend/cli/render.h"
+#include "../../../include/gui/cli/render.h"
 
 #include <ncurses.h>
 
@@ -49,15 +49,17 @@ void render_game(const GameInfo_t *info) {
   for (int y = 0; y < FIELD_HEIGHT; ++y) {
     for (int x = 0; x < FIELD_WIDTH; ++x) {
       mvprintw(FIELD_OFFSET_Y + y, FIELD_OFFSET_X + x * 2, "%s",
-               info->field[y][x] ? "[]" : "  ");
+               info->field && info->field[y][x] ? "[]" : "  ");
     }
   }
 
-  // Next фигура
-  mvprintw(1, 25, "Next:");
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      mvprintw(2 + y, 25 + x * 2, "%s", info->next[y][x] ? "[]" : "  ");
+  // Next фигура (только для тетриса)
+  if (info->next) {
+    mvprintw(1, 25, "Next:");
+    for (int y = 0; y < 4; ++y) {
+      for (int x = 0; x < 4; ++x) {
+        mvprintw(2 + y, 25 + x * 2, "%s", info->next[y][x] ? "[]" : "  ");
+      }
     }
   }
 
@@ -79,13 +81,13 @@ void render_game(const GameInfo_t *info) {
 void renderStartScreen() {
   clear();
 
-  mvprintw(SCREEN_CENTER_Y - 5, SCREEN_CENTER_X - 4, "TETRIS GAME");
+  mvprintw(SCREEN_CENTER_Y - 5, SCREEN_CENTER_X - 4, "BRICKGAME");
   mvprintw(SCREEN_CENTER_Y - 2, SCREEN_CENTER_X - 10, "Press ENTER to Start");
   mvprintw(SCREEN_CENTER_Y - 1, SCREEN_CENTER_X - 6, "or Q to Quit");
 
   mvprintw(SCREEN_CENTER_Y + 1, SCREEN_CENTER_X - 4, "== RULES ==");
   mvprintw(SCREEN_CENTER_Y + 2, SCREEN_CENTER_X - 10, "Arrow Keys : Move");
-  mvprintw(SCREEN_CENTER_Y + 3, SCREEN_CENTER_X - 10, "Space      : Rotate");
+  mvprintw(SCREEN_CENTER_Y + 3, SCREEN_CENTER_X - 10, "Space/Action: Rotate/Speed up");
   mvprintw(SCREEN_CENTER_Y + 4, SCREEN_CENTER_X - 10, "P          : Pause");
   mvprintw(SCREEN_CENTER_Y + 5, SCREEN_CENTER_X - 10, "Q          : Quit");
 

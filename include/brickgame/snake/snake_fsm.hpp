@@ -6,16 +6,15 @@
 namespace s21 {
 
 class SnakeFSM {
-public:
-    explicit SnakeFSM(SnakeGame& game);
+ public:
+  explicit SnakeFSM(SnakeGame& game);
 
-    void HandleInput(UserAction_t action, bool hold);
-    void Tick();
+  void HandleInput(UserAction_t action, bool hold);
 
-private:
-    SnakeGame& game_;
+ private:
+  SnakeGame& game_;
 };
 
-} // namespace s21
+}  // namespace s21
 
-#endif // S21_SNAKE_FSM_HPP
+#endif  // S21_SNAKE_FSM_HPP

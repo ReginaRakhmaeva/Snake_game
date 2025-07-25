@@ -1,44 +1,29 @@
-# === Конфигурация ===
-CC      := gcc
-CFLAGS  := -Wall -Wextra -Werror -std=c11 -g \
-           -Iinclude/brickgame/common \
-           -Iinclude/brickgame/tetris \
-           -Iinclude/brickgame/frontend/cli
-LDFLAGS := -lncurses
+# === Компиляторы и флаги ===
+CC = gcc
+CXX = g++
+CFLAGS = -fPIC -Wall -Wextra -std=c99 -g -O0 -Iinclude
+CXXFLAGS = -fPIC -Wall -Wextra -std=c++20 -g -O0 -Iinclude
 
-# Папки
-TETRIS_SRC  := src/brickgame/tetris
-CLI_SRC     := src/frontend/cli
-BUILD_DIR   := build
+LDFLAGS = -ldl -lncurses
 
-# Исходники
-TETRIS_SRCS := $(wildcard $(TETRIS_SRC)/*.c)
-CLI_SRCS    := $(wildcard $(CLI_SRC)/*.c)
+TETRIS_SRC = src/brickgame/tetris/backend.c src/brickgame/tetris/fsm.c src/brickgame/tetris/game.c
+SNAKE_SRC = src/brickgame/snake/snake_api.cpp src/brickgame/snake/snake_fsm.cpp src/brickgame/snake/snake_game.cpp
 
-# Объекты
-TETRIS_OBJS := $(patsubst $(TETRIS_SRC)/%.c,$(BUILD_DIR)/tetris_%.o,$(TETRIS_SRCS))
-CLI_OBJS    := $(patsubst $(CLI_SRC)/%.c,$(BUILD_DIR)/cli_%.o,$(CLI_SRCS))
+LIBTETRIS = libtetris.so
+LIBSNAKE = libsnake.so
 
-# Цели
-TARGET      := tetris
+CLI_SRC = src/gui/cli/main.c src/gui/cli/input.c src/gui/cli/render.c
 
-# === Правила ===
+all: $(LIBTETRIS) $(LIBSNAKE) brickgame_cli
 
-.PHONY: all clean
+$(LIBTETRIS): $(TETRIS_SRC)
+	$(CC) $(CFLAGS) -shared -o $@ $(TETRIS_SRC)
 
-all: $(BUILD_DIR) $(TARGET)
+$(LIBSNAKE): $(SNAKE_SRC)
+	$(CXX) $(CXXFLAGS) -shared -o $@ $(SNAKE_SRC)
 
-$(TARGET): $(TETRIS_OBJS) $(CLI_OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-$(BUILD_DIR)/tetris_%.o: $(TETRIS_SRC)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BUILD_DIR)/cli_%.o: $(CLI_SRC)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BUILD_DIR):
-	mkdir -p $@
+brickgame_cli: $(CLI_SRC)
+	$(CC) $(CFLAGS) -o $@ $(CLI_SRC) $(LDFLAGS)
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
+	rm -f $(LIBTETRIS) $(LIBSNAKE) brickgame_cli

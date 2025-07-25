@@ -1,8 +1,9 @@
-// game.h - API для Tetris (userInput/updateCurrentState)
-#ifndef S21_TETRIS_GAME_H
-#define S21_TETRIS_GAME_H
+// snake_api.h - API для Snake (userInput/updateCurrentState)
+#ifndef S21_SNAKE_API_H
+#define S21_SNAKE_API_H
 
 #include <stdbool.h>
+
 #include "../common/types.h"
 
 #ifdef __cplusplus
@@ -17,4 +18,4 @@ bool isGameOver();
 }
 #endif
 
-#endif // S21_TETRIS_GAME_H
+#endif  // S21_SNAKE_API_H

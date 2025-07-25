@@ -24,8 +24,15 @@ typedef struct {
     int pause;
 } GameInfo_t;
 
-void userInput(UserAction_t action, bool hold);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+void userInput(UserAction_t action, bool hold);
 GameInfo_t updateCurrentState();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BRICKGAME_COMMON_TYPES_H 

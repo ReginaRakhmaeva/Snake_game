@@ -1,4 +1,4 @@
-#include "../../../include/brickgame/frontend/cli/input.h"
+#include "../../../include/gui/cli/input.h"
 
 #include <ncurses.h>
 
