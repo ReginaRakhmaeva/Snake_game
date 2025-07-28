@@ -42,6 +42,9 @@ void drawFieldBorders() {
  * @param info Указатель на структуру GameInfo_t
  */
 void render_game(const GameInfo_t *info) {
+  mvprintw(0, 0, "field ptr: %p", (void *)info->field);
+  mvprintw(1, 0, "score: %d", info->score);
+
   clear();
   drawFieldBorders();
 
@@ -87,7 +90,8 @@ void renderStartScreen() {
 
   mvprintw(SCREEN_CENTER_Y + 1, SCREEN_CENTER_X - 4, "== RULES ==");
   mvprintw(SCREEN_CENTER_Y + 2, SCREEN_CENTER_X - 10, "Arrow Keys : Move");
-  mvprintw(SCREEN_CENTER_Y + 3, SCREEN_CENTER_X - 10, "Space/Action: Rotate/Speed up");
+  mvprintw(SCREEN_CENTER_Y + 3, SCREEN_CENTER_X - 10,
+           "Space/Action: Rotate/Speed up");
   mvprintw(SCREEN_CENTER_Y + 4, SCREEN_CENTER_X - 10, "P          : Pause");
   mvprintw(SCREEN_CENTER_Y + 5, SCREEN_CENTER_X - 10, "Q          : Quit");
 

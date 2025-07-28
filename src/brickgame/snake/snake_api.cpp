@@ -6,24 +6,23 @@
 namespace s21 {
 static SnakeGame game;
 static SnakeFSM fsm(game);
-}  // namespace s21
 
+}  // namespace s21
+static GameInfo_t previous_info;
 extern "C" void userInput(UserAction_t action, bool hold) {
   s21::fsm.HandleInput(action, hold);
 }
 
 extern "C" GameInfo_t updateCurrentState() {
-  // Двигаем змейку на 1 шаг, если игра в состоянии Running
-  if (s21::game.GetState() == s21::SnakeGameState::Running) {
-    s21::game.Update();
-  }
-  return s21::game.GetGameInfo();
+  s21::game.Tick();
+  s21::game.FreeGameInfo(previous_info);
+  previous_info = s21::game.GetGameInfo();
+  return previous_info;
 }
 
 extern "C" bool isGameOver() {
   auto state = s21::game.GetState();
   // Возвращаем true только для явных состояний завершения
   return state == s21::SnakeGameState::Lost ||
-         state == s21::SnakeGameState::Won ||
-         state == s21::SnakeGameState::Ready;  // Добавили Ready
+         state == s21::SnakeGameState::Won;  // Добавили Ready
 }

@@ -39,7 +39,7 @@ void SnakeGame::InitializeSnake() {
   int start_x = kGameWidth / 2 - 2;
   int start_y = kGameHeight / 2;
 
-  for (int i = 0; i < length_; ++i) {
+  for (int i = length_ - 1; i >= 0; --i) {
     snake_.push_back({start_x + i, start_y});
     field_[start_y][start_x + i] = static_cast<int>(CellType::Snake);
   }
@@ -88,6 +88,13 @@ void SnakeGame::Move() {
   if (snake_.empty()) return;
 
   SnakeSegment head = snake_.front();
+  // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
+  FILE* dbg = fopen("debug.log", "a");
+  if (dbg) {
+    fprintf(dbg, "Move: old head=(%d,%d) dir=%d\n", head.x, head.y, (int)direction_);
+  }
+  // КОНЕЦ ОТЛАДКИ
+
   switch (direction_) {
     case SnakeDirection::Up:
       head.y -= 1;
@@ -103,11 +110,24 @@ void SnakeGame::Move() {
       break;
   }
 
+  // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
+  if (dbg) {
+    fprintf(dbg, "Move: new head=(%d,%d)\n", head.x, head.y);
+  }
+  // КОНЕЦ ОТЛАДКИ
+
   // Проверка столкновений
-  if (head.x < 0 || head.x >= kGameWidth || head.y < 0 ||
-      head.y >= kGameHeight || CheckCollision(head.x, head.y)) {
+  bool collision = (head.x < 0 || head.x >= kGameWidth || head.y < 0 || head.y >= kGameHeight || CheckCollision(head.x, head.y));
+  if (dbg) {
+    fprintf(dbg, "Move: collision=%d\n", collision ? 1 : 0);
+  }
+  if (collision) {
     state_ = SnakeGameState::Lost;
     UpdateHighScore();
+    if (dbg) {
+      fprintf(dbg, "Move: GAME OVER!\n");
+      fclose(dbg);
+    }
     return;
   }
 
@@ -123,6 +143,10 @@ void SnakeGame::Move() {
     if (length_ >= kMaxSnakeLength) {
       state_ = SnakeGameState::Won;
       UpdateHighScore();
+      if (dbg) {
+        fprintf(dbg, "Move: WIN!\n");
+        fclose(dbg);
+      }
       return;
     }
 
@@ -136,6 +160,11 @@ void SnakeGame::Move() {
     SnakeSegment tail = snake_.back();
     field_[tail.y][tail.x] = static_cast<int>(CellType::Empty);
     snake_.pop_back();
+    // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
+    if (dbg) {
+      fprintf(dbg, "Move: tail removed=(%d,%d)\n", tail.x, tail.y);
+      fclose(dbg);
+    }
   }
 }
 
@@ -172,11 +201,27 @@ GameInfo_t SnakeGame::GetGameInfo() const {
     }
   }
 
+  // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
+  FILE* dbg = fopen("debug.log", "a");
+  if (dbg) {
+    fprintf(dbg, "GetGameInfo field_ state:\n");
+    for (int y = 0; y < kGameHeight; ++y) {
+      for (int x = 0; x < kGameWidth; ++x) {
+        fprintf(dbg, "%d", field_[y][x]);
+      }
+      fprintf(dbg, "\n");
+    }
+    fprintf(dbg, "---\n");
+    fclose(dbg);
+  }
+  // КОНЕЦ ОТЛАДКИ
+
   info.score = score_;
   info.high_score = high_score_;
   info.level = level_;
   info.speed = speed_;
   info.pause = (state_ == SnakeGameState::Paused) ? 1 : 0;
+  info.next = nullptr;  // У змейки нет next-фигуры, явно указать
 
   return info;
 }
@@ -205,8 +250,12 @@ bool SnakeGame::IsOppositeDirection(SnakeDirection dir) const {
 SnakeGameState SnakeGame::GetState() const { return state_; }
 
 void SnakeGame::Resume() {
-  if (state_ == SnakeGameState::Paused || state_ == SnakeGameState::Ready)
+  if (state_ == SnakeGameState::Paused || state_ == SnakeGameState::Ready) {
+    if (state_ == SnakeGameState::Ready) {
+      Update(); // инициализация змейки и яблока
+    }
     state_ = SnakeGameState::Running;
+  }
 }
 
 void SnakeGame::Pause() {

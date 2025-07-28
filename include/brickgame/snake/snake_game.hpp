@@ -34,6 +34,10 @@ class SnakeGame {
   GameInfo_t GetGameInfo() const;
 
   SnakeGameState GetState() const;
+  // раньше был приватным
+  void FreeGameInfo(GameInfo_t& info) const;
+  // Новый метод
+  void Tick();
 
  private:
   void Move();
@@ -41,13 +45,9 @@ class SnakeGame {
   bool CheckCollision(int x, int y) const;
   bool IsOppositeDirection(SnakeDirection dir) const;
 
-  // Новый метод
-  void Tick();
-
   void ClearField();
   void InitializeSnake();
   void UpdateHighScore();
-  void FreeGameInfo(GameInfo_t& info) const;
 
   std::deque<SnakeSegment> snake_;
   SnakeDirection direction_;
