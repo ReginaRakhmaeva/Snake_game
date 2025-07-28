@@ -1,8 +1,15 @@
-#ifndef BRICKGAME_TETRIS_INPUT_H_
-#define BRICKGAME_TETRIS_INPUT_H_
+#ifndef GUI_CLI_INPUT_H
+#define GUI_CLI_INPUT_H
+
+#include <stdbool.h>
 
 #include "../../../include/brickgame/common/types.h"
 
-UserAction_t read_input(bool *hold);
+typedef enum {
+    GAME_TETRIS = 1,
+    GAME_SNAKE = 2
+} GameType;
 
-#endif  // BRICKGAME_TETRIS_INPUT_H_
+UserAction_t read_input(bool *hold, GameType game_type);
+
+#endif  // GUI_CLI_INPUT_H

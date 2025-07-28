@@ -9,7 +9,7 @@ GameState_t fsm_get_state(void) { return current_state; }
 void fsm_process_input(UserAction_t action) {
   switch (current_state) {
     case STATE_INIT:
-      if (action == Start) {
+      if (action == Start && current_state == STATE_INIT) {
         current_state = STATE_RUNNING;
       }
       break;

@@ -30,10 +30,19 @@ int main(void) {
   int ch = 0;
   while (ch != '1' && ch != '2') ch = getch();
 
+  GameType current_game = GAME_TETRIS; // по умолчанию
+
+  // При выборе игры
+  if (ch == '1') {
+      current_game = GAME_TETRIS;
+  } else if (ch == '2') {
+      current_game = GAME_SNAKE;
+  }
+
   void *lib = NULL;
-  if (ch == '1')
+  if (current_game == GAME_TETRIS)
     lib = dlopen("./libtetris.so", RTLD_LAZY);
-  else if (ch == '2')
+  else if (current_game == GAME_SNAKE)
     lib = dlopen("./libsnake.so", RTLD_LAZY);
   if (!lib) {
     endwin();
@@ -59,7 +68,7 @@ int main(void) {
 
   while (running) {
     bool hold = false;
-    int action = read_input(&hold);
+    UserAction_t action = read_input(&hold, current_game);
     if (action == Pause) paused = !paused;
     if (action == Start) start = true;
     if (action == Terminate) running = false;

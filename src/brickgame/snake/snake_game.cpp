@@ -66,21 +66,28 @@ void SnakeGame::Update() {
 void SnakeGame::ChangeDirection(UserAction_t action) {
   if (state_ != SnakeGameState::Running) return;
 
-  static const std::map<SnakeDirection,
-                        std::pair<SnakeDirection, SnakeDirection>>
-      direction_map = {
-          {SnakeDirection::Up, {SnakeDirection::Left, SnakeDirection::Right}},
-          {SnakeDirection::Down, {SnakeDirection::Right, SnakeDirection::Left}},
-          {SnakeDirection::Left, {SnakeDirection::Down, SnakeDirection::Up}},
-          {SnakeDirection::Right, {SnakeDirection::Up, SnakeDirection::Down}}};
+  SnakeDirection new_direction = direction_; // по умолчанию не меняем
 
-  const auto& [left, right] = direction_map.at(direction_);
-
-  if (action == Left && !IsOppositeDirection(left)) {
-    next_direction_ = left;
+  switch (action) {
+    case Up:
+      new_direction = SnakeDirection::Up;
+      break;
+    case Down:
+      new_direction = SnakeDirection::Down;
+      break;
+    case Left:
+      new_direction = SnakeDirection::Left;
+      break;
+    case Right:
+      new_direction = SnakeDirection::Right;
+      break;
+    default:
+      return; // игнорируем другие действия
   }
-  if (action == Right && !IsOppositeDirection(right)) {
-    next_direction_ = right;
+
+  // Проверяем, что новое направление не противоположно текущему
+  if (!IsOppositeDirection(new_direction)) {
+    next_direction_ = new_direction;
   }
 }
 

@@ -2,7 +2,7 @@
 
 #include <ncurses.h>
 
-UserAction_t read_input(bool *hold) {
+UserAction_t read_input(bool *hold, GameType game_type) {
   int ch = getch();
   *hold = false;
 
@@ -27,6 +27,6 @@ UserAction_t read_input(bool *hold) {
     case KEY_ENTER:
       return Start;
     default:
-      return Up;  // Нейтральное значение
+      return (game_type == GAME_TETRIS) ? Up : Action;
   }
 }
