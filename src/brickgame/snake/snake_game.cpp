@@ -41,7 +41,7 @@ void SnakeGame::ClearField() {
 
 void SnakeGame::InitializeSnake() {
   snake_.clear();
-  int start_x = kGameWidth / 2 - 2;
+  int start_x = 0;
   int start_y = kGameHeight / 2;
 
   for (int i = length_ - 1; i >= 0; --i) {
@@ -100,13 +100,6 @@ void SnakeGame::Move() {
   if (snake_.empty()) return;
 
   SnakeSegment head = snake_.front();
-  // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
-  FILE* dbg = fopen("debug.log", "a");
-  if (dbg) {
-    fprintf(dbg, "Move: old head=(%d,%d) dir=%d\n", head.x, head.y,
-            (int)direction_);
-  }
-  // КОНЕЦ ОТЛАДКИ
 
   switch (direction_) {
     case SnakeDirection::Up:
@@ -123,25 +116,11 @@ void SnakeGame::Move() {
       break;
   }
 
-  // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
-  if (dbg) {
-    fprintf(dbg, "Move: new head=(%d,%d)\n", head.x, head.y);
-  }
-  // КОНЕЦ ОТЛАДКИ
-
-  // Проверка столкновений
   bool collision = (head.x < 0 || head.x >= kGameWidth || head.y < 0 ||
                     head.y >= kGameHeight || CheckCollision(head.x, head.y));
-  if (dbg) {
-    fprintf(dbg, "Move: collision=%d\n", collision ? 1 : 0);
-  }
   if (collision) {
     state_ = SnakeGameState::Lost;
     UpdateHighScore();
-    if (dbg) {
-      fprintf(dbg, "Move: GAME OVER!\n");
-      fclose(dbg);
-    }
     return;
   }
 
@@ -153,14 +132,10 @@ void SnakeGame::Move() {
   if (grow) {
     ++length_;
     score_ += 1;
-    UpdateHighScore(); // <--- ВЫЗЫВАТЬ ВСЕГДА при поедании яблока!
+    UpdateHighScore();
     if (length_ >= kMaxSnakeLength) {
       state_ = SnakeGameState::Won;
       UpdateHighScore();
-      if (dbg) {
-        fprintf(dbg, "Move: WIN!\n");
-        fclose(dbg);
-      }
       return;
     }
     level_ = std::min(1 + score_ / 5, 10);
@@ -205,21 +180,6 @@ GameInfo_t SnakeGame::GetGameInfo() const {
       info.field[y][x] = field_[y][x];
     }
   }
-
-  // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
-  FILE* dbg = fopen("debug.log", "a");
-  if (dbg) {
-    fprintf(dbg, "GetGameInfo field_ state:\n");
-    for (int y = 0; y < kGameHeight; ++y) {
-      for (int x = 0; x < kGameWidth; ++x) {
-        fprintf(dbg, "%d", field_[y][x]);
-      }
-      fprintf(dbg, "\n");
-    }
-    fprintf(dbg, "---\n");
-    fclose(dbg);
-  }
-  // КОНЕЦ ОТЛАДКИ
 
   info.score = score_;
   info.high_score = high_score_;
@@ -292,12 +252,6 @@ void SnakeGame::SaveHighScore() const {
     if (file.is_open()) {
         file << high_score_;
         file.close();
-        // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
-        FILE* dbg = fopen("debug1.log", "a");
-        if (dbg) {
-            fprintf(dbg, "SaveHighScore: saved %d\n", high_score_);
-            fclose(dbg);
-        }
     }
 }
 

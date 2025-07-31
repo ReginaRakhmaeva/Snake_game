@@ -26,4 +26,10 @@ brickgame_cli: $(CLI_SRC)
 	$(CC) $(CFLAGS) -o $@ $(CLI_SRC) $(LDFLAGS)
 
 clean:
-	rm -f $(LIBTETRIS) $(LIBSNAKE) brickgame_cli
+#	rm -rf $(BUILD_DIR)
+	rm -f $(LIBTETRIS) $(LIBSNAKE) $(BRICKGAME_CLI)
+	rm -f snake_cli tetris_cli
+	rm -f debug.log debug1.log
+	rm -f snake_highscore.txt tetris_highscore.txt
+	rm -f *.o *.out *.a
+	rm -f brickgame_cli
