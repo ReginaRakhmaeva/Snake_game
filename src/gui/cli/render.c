@@ -71,10 +71,6 @@ void render_game(const GameInfo_t *info) {
   mvprintw(9, 25, "High:  %d", info->high_score);
   mvprintw(10, 25, "Level: %d", info->level);
 
-  if (info->pause) {
-    mvprintw(12, 25, "[PAUSE]");
-  }
-
   refresh();
 }
 

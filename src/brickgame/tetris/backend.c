@@ -331,11 +331,10 @@ BackendStatus backend_fix_piece(void) {
 //   return BACKEND_OK;
 // }
 
-
 GameInfo_t backend_get_info(void) { return info; }
 
 int get_level_speed(int level) {
-    int speed = 600 - (level - 1) * 60;
-    if (speed < 80) speed = 80;
-    return speed;
+  int speed = 600 - (level - 1) * 60;
+  if (speed < 80) speed = 80;
+  return speed;
 }

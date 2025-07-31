@@ -14,7 +14,7 @@ UserAction_t read_input(bool *hold, GameType game_type) {
     case KEY_DOWN:
       return Down;
     case KEY_UP:
-      return Up;  // Не используется
+      return Up;
     case ' ':
       return Action;
     case 'p':

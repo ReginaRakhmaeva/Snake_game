@@ -49,6 +49,9 @@ class SnakeGame {
   void InitializeSnake();
   void UpdateHighScore();
 
+  int LoadHighScore();
+  void SaveHighScore() const;
+
   std::deque<SnakeSegment> snake_;
   SnakeDirection direction_;
   SnakeDirection next_direction_;

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <random>
+#include <fstream>
+#include <string>
 
 namespace s21 {
 
@@ -11,7 +13,10 @@ enum class CellType { Empty = 0, Snake = 1, Apple = 2 };
 // Константа для максимальной длины змейки
 constexpr int kMaxSnakeLength = 200;
 
-SnakeGame::SnakeGame() : gen_(std::random_device{}()) { Reset(); }
+SnakeGame::SnakeGame() : gen_(std::random_device{}()) {
+    high_score_ = LoadHighScore();
+    Reset();
+}
 
 void SnakeGame::Reset() {
   state_ = SnakeGameState::Ready;
@@ -66,7 +71,7 @@ void SnakeGame::Update() {
 void SnakeGame::ChangeDirection(UserAction_t action) {
   if (state_ != SnakeGameState::Running) return;
 
-  SnakeDirection new_direction = direction_; // по умолчанию не меняем
+  SnakeDirection new_direction = direction_;  // по умолчанию не меняем
 
   switch (action) {
     case Up:
@@ -82,7 +87,7 @@ void SnakeGame::ChangeDirection(UserAction_t action) {
       new_direction = SnakeDirection::Right;
       break;
     default:
-      return; // игнорируем другие действия
+      return;  // игнорируем другие действия
   }
 
   // Проверяем, что новое направление не противоположно текущему
@@ -98,7 +103,8 @@ void SnakeGame::Move() {
   // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
   FILE* dbg = fopen("debug.log", "a");
   if (dbg) {
-    fprintf(dbg, "Move: old head=(%d,%d) dir=%d\n", head.x, head.y, (int)direction_);
+    fprintf(dbg, "Move: old head=(%d,%d) dir=%d\n", head.x, head.y,
+            (int)direction_);
   }
   // КОНЕЦ ОТЛАДКИ
 
@@ -124,7 +130,8 @@ void SnakeGame::Move() {
   // КОНЕЦ ОТЛАДКИ
 
   // Проверка столкновений
-  bool collision = (head.x < 0 || head.x >= kGameWidth || head.y < 0 || head.y >= kGameHeight || CheckCollision(head.x, head.y));
+  bool collision = (head.x < 0 || head.x >= kGameWidth || head.y < 0 ||
+                    head.y >= kGameHeight || CheckCollision(head.x, head.y));
   if (dbg) {
     fprintf(dbg, "Move: collision=%d\n", collision ? 1 : 0);
   }
@@ -145,8 +152,8 @@ void SnakeGame::Move() {
 
   if (grow) {
     ++length_;
-    score_ += level_ * 10;  // Больше очков на высоких уровнях
-
+    score_ += 1;
+    UpdateHighScore(); // <--- ВЫЗЫВАТЬ ВСЕГДА при поедании яблока!
     if (length_ >= kMaxSnakeLength) {
       state_ = SnakeGameState::Won;
       UpdateHighScore();
@@ -156,22 +163,12 @@ void SnakeGame::Move() {
       }
       return;
     }
-
-    // Увеличиваем уровень каждые 5 яблок
-    if (length_ % 5 == 0) {
-      ++level_;
-    }
-
+    level_ = std::min(1 + score_ / 5, 10);
     PlaceApple();
   } else {
     SnakeSegment tail = snake_.back();
     field_[tail.y][tail.x] = static_cast<int>(CellType::Empty);
     snake_.pop_back();
-    // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
-    if (dbg) {
-      fprintf(dbg, "Move: tail removed=(%d,%d)\n", tail.x, tail.y);
-      fclose(dbg);
-    }
   }
 }
 
@@ -191,9 +188,10 @@ void SnakeGame::PlaceApple() {
 }
 
 void SnakeGame::UpdateHighScore() {
-  if (score_ > high_score_) {
-    high_score_ = score_;
-  }
+    if (score_ > high_score_) {
+        high_score_ = score_;
+        SaveHighScore();
+    }
 }
 
 GameInfo_t SnakeGame::GetGameInfo() const {
@@ -259,7 +257,7 @@ SnakeGameState SnakeGame::GetState() const { return state_; }
 void SnakeGame::Resume() {
   if (state_ == SnakeGameState::Paused || state_ == SnakeGameState::Ready) {
     if (state_ == SnakeGameState::Ready) {
-      Update(); // инициализация змейки и яблока
+      Update();  // инициализация змейки и яблока
     }
     state_ = SnakeGameState::Running;
   }
@@ -277,6 +275,30 @@ void SnakeGame::Tick() {
   if (state_ == SnakeGameState::Running) {
     Update();  // Просто вызываем обновление
   }
+}
+
+int SnakeGame::LoadHighScore() {
+    std::ifstream file("snake_highscore.txt");
+    int hs = 0;
+    if (file.is_open()) {
+        file >> hs;
+        file.close();
+    }
+    return hs;
+}
+
+void SnakeGame::SaveHighScore() const {
+    std::ofstream file("snake_highscore.txt");
+    if (file.is_open()) {
+        file << high_score_;
+        file.close();
+        // ВРЕМЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
+        FILE* dbg = fopen("debug1.log", "a");
+        if (dbg) {
+            fprintf(dbg, "SaveHighScore: saved %d\n", high_score_);
+            fclose(dbg);
+        }
+    }
 }
 
 }  // namespace s21

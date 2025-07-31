@@ -13,7 +13,10 @@
 typedef void (*userInput_t)(int, bool);
 typedef GameInfo_t (*updateCurrentState_t)(void);
 typedef bool (*isGameOver_t)(void);
-
+// при паузе змейка не запускается (вроде починила)
+// написать запоминание счета
+// проверить статики в бэке, насколько надежно
+// двигается вправо хотелось бы налево ну или хотябы ближе к другой стороне
 int main(void) {
   initscr();
   noecho();
@@ -30,13 +33,13 @@ int main(void) {
   int ch = 0;
   while (ch != '1' && ch != '2') ch = getch();
 
-  GameType current_game = GAME_TETRIS; // по умолчанию
+  GameType current_game = GAME_TETRIS;  // по умолчанию
 
   // При выборе игры
   if (ch == '1') {
-      current_game = GAME_TETRIS;
+    current_game = GAME_TETRIS;
   } else if (ch == '2') {
-      current_game = GAME_SNAKE;
+    current_game = GAME_SNAKE;
   }
 
   void *lib = NULL;
@@ -54,13 +57,6 @@ int main(void) {
   updateCurrentState_t updateCurrentState =
       (updateCurrentState_t)dlsym(lib, "updateCurrentState");
   isGameOver_t isGameOver = (isGameOver_t)dlsym(lib, "isGameOver");
-
-  // Добавь эти строки для отладки:
-  FILE *log = fopen("debug.log", "a");
-  fprintf(log, "userInput addr: %p\n", (void *)userInput);
-  fprintf(log, "updateCurrentState addr: %p\n", (void *)updateCurrentState);
-  fprintf(log, "isGameOver addr: %p\n", (void *)isGameOver);
-  fclose(log);
 
   bool running = true;
   bool paused = false;
