@@ -4,25 +4,30 @@
 #define BRICKGAME_COMMON_TYPES_H
 
 typedef enum {
-    Start,
-    Pause,
-    Terminate,
-    Left,
-    Right,
-    Up,
-    Down,
-    Action
+  Start,
+  Pause,
+  Terminate,
+  Left,
+  Right,
+  Up,
+  Down,
+  Action
 } UserAction_t;
 
 typedef struct {
-    int **field;
-    int **next;
-    int score;
-    int high_score;
-    int level;
-    int speed;
-    int pause;
+  int **field;
+  int **next;
+  int score;
+  int high_score;
+  int level;
+  int speed;
+  int pause;
 } GameInfo_t;
+#ifdef __cplusplus
+enum class CellType { Empty = 0, Snake = 1, Apple = 2 };
+#else
+typedef enum { Empty = 0, Snake = 1, Apple = 2 } CellType;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,4 +40,4 @@ GameInfo_t updateCurrentState();
 }
 #endif
 
-#endif // BRICKGAME_COMMON_TYPES_H 
+#endif  // BRICKGAME_COMMON_TYPES_H

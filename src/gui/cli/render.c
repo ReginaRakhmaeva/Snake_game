@@ -95,8 +95,52 @@ void renderStartScreen() {
 }
 void renderGameOverScreen() {
   clear();
-  mvprintw(10, FIELD_OFFSET_X, "=== GAME OVER ===");
-  mvprintw(12, FIELD_OFFSET_X, "Press ENTER to restart");
-  mvprintw(13, FIELD_OFFSET_X, "Press Q to exit");
+  mvprintw(SCREEN_CENTER_Y - 5, SCREEN_CENTER_X - 8, "=== GAME OVER ===");
+  mvprintw(SCREEN_CENTER_Y - 2, SCREEN_CENTER_X - 11, "Press ENTER to restart");
+  mvprintw(SCREEN_CENTER_Y - 1, SCREEN_CENTER_X - 8, "Press Q to exit");
   refresh();
+}
+void renderGameWonScreen() {
+  clear();
+  mvprintw(SCREEN_CENTER_Y - 5, SCREEN_CENTER_X - 8, "=== YOU WON! ===");
+  mvprintw(SCREEN_CENTER_Y - 2, SCREEN_CENTER_X - 11, "Press ENTER to restart");
+  mvprintw(SCREEN_CENTER_Y - 1, SCREEN_CENTER_X - 8, "Press Q to exit");
+  refresh();
+}
+
+/**
+ * @brief Отображает экран выбора игры и возвращает выбранную игру.
+ *
+ * @return GameType - выбранная игра
+ */
+GameType render_game_selection() {
+  clear();
+  mvprintw(SCREEN_CENTER_Y - 5, SCREEN_CENTER_X - 4,
+           "===== BRICKGAME COLLECTION =====");
+  mvprintw(7, 12, "Select a game:");
+  mvprintw(9, 14, "1 - Tetris");
+  mvprintw(10, 14, "2 - Snake");
+  mvprintw(12, 12, "Press 1 or 2 to select");
+  refresh();
+
+  int ch = 0;
+  while (ch != '1' && ch != '2') {
+    ch = getch();
+  }
+
+  return (ch == '1') ? GAME_TETRIS : GAME_SNAKE;
+}
+
+/**
+ * @brief Отображает ошибку загрузки библиотеки.
+ *
+ * @param error - текст ошибки
+ */
+void render_loading_error(const char *error) {
+  clear();
+  mvprintw(SCREEN_CENTER_Y - 2, SCREEN_CENTER_X - 10, "=== LOADING ERROR ===");
+  mvprintw(SCREEN_CENTER_Y, SCREEN_CENTER_X - 15, "Error: %s", error);
+  mvprintw(SCREEN_CENTER_Y + 2, SCREEN_CENTER_X - 12, "Press any key to exit");
+  refresh();
+  getch();
 }

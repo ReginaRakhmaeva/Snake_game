@@ -1,8 +1,8 @@
 #include "../../../include/brickgame/snake/snake_game.hpp"
 
 #include <algorithm>
-#include <random>
 #include <fstream>
+#include <random>
 #include <string>
 
 namespace s21 {
@@ -14,8 +14,8 @@ enum class CellType { Empty = 0, Snake = 1, Apple = 2 };
 constexpr int kMaxSnakeLength = 200;
 
 SnakeGame::SnakeGame() : gen_(std::random_device{}()) {
-    high_score_ = LoadHighScore();
-    Reset();
+  high_score_ = LoadHighScore();
+  Reset();
 }
 
 void SnakeGame::Reset() {
@@ -25,7 +25,7 @@ void SnakeGame::Reset() {
   length_ = 4;
   score_ = 0;
   level_ = 1;
-  speed_ = 600;  // как в тетрисе
+  speed_ = 600;
   accelerated_ = false;
 
   ClearField();
@@ -64,8 +64,7 @@ void SnakeGame::Update() {
   direction_ = next_direction_;
   Move();
 
-  speed_ = 600 - (level_ - 1) * 60;
-  if (speed_ < 80) speed_ = 80;
+  speed_ = 600 - (level_ - 1) * 40;
 }
 
 void SnakeGame::ChangeDirection(UserAction_t action) {
@@ -163,10 +162,10 @@ void SnakeGame::PlaceApple() {
 }
 
 void SnakeGame::UpdateHighScore() {
-    if (score_ > high_score_) {
-        high_score_ = score_;
-        SaveHighScore();
-    }
+  if (score_ > high_score_) {
+    high_score_ = score_;
+    SaveHighScore();
+  }
 }
 
 GameInfo_t SnakeGame::GetGameInfo() const {
@@ -238,21 +237,21 @@ void SnakeGame::Tick() {
 }
 
 int SnakeGame::LoadHighScore() {
-    std::ifstream file("snake_highscore.txt");
-    int hs = 0;
-    if (file.is_open()) {
-        file >> hs;
-        file.close();
-    }
-    return hs;
+  std::ifstream file("snake_highscore.txt");
+  int hs = 0;
+  if (file.is_open()) {
+    file >> hs;
+    file.close();
+  }
+  return hs;
 }
 
 void SnakeGame::SaveHighScore() const {
-    std::ofstream file("snake_highscore.txt");
-    if (file.is_open()) {
-        file << high_score_;
-        file.close();
-    }
+  std::ofstream file("snake_highscore.txt");
+  if (file.is_open()) {
+    file << high_score_;
+    file.close();
+  }
 }
 
 }  // namespace s21

@@ -12,8 +12,6 @@ void SnakeFSM::HandleInput(UserAction_t action, bool hold) {
           game_.GetState() == SnakeGameState::Won) {
         game_.Reset();
         game_.Resume();
-      } else if (game_.GetState() == SnakeGameState::Paused) {
-        game_.Resume();
       }
       break;
     case Pause:
@@ -45,7 +43,5 @@ void SnakeFSM::HandleInput(UserAction_t action, bool hold) {
       break;
   }
 }
-
-// Tick удалён, теперь движение только из main.c
 
 }  // namespace s21

@@ -9,7 +9,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+bool isVictory(void);
 void userInput(UserAction_t action, bool hold);
 GameInfo_t updateCurrentState();
 bool isGameOver();

@@ -22,7 +22,9 @@ extern "C" GameInfo_t updateCurrentState() {
 
 extern "C" bool isGameOver() {
   auto state = s21::game.GetState();
-  // Возвращаем true только для явных состояний завершения
   return state == s21::SnakeGameState::Lost ||
-         state == s21::SnakeGameState::Won;  // Добавили Ready
+         state == s21::SnakeGameState::Won;
+}
+extern "C" bool isVictory() {
+  return s21::game.GetState() == s21::SnakeGameState::Won;
 }
