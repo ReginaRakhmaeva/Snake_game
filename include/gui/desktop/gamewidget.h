@@ -1,40 +1,49 @@
-#pragma once
-#include <QTimer>
-#include <QWidget>
+#ifndef GAMEWIDGET_H
+#define GAMEWIDGET_H
 
+#include <QWidget>
+#include <QPainter>
+#include <QKeyEvent>
 #include "../../brickgame/common/types.h"
 
-typedef void (*UserInputFunc)(UserAction_t, bool);
-typedef GameInfo_t (*UpdateStateFunc)();
-typedef bool (*IsGameOverFunc)();
+class GameWidget : public QWidget
+{
+    Q_OBJECT
 
-class GameWidget : public QWidget {
-  Q_OBJECT
- public:
-  GameWidget(QWidget* parent = nullptr);
+public:
+    explicit GameWidget(QWidget *parent = nullptr);
+    ~GameWidget();
 
-  void setGameAPI(UserInputFunc userInput, UpdateStateFunc updateState,
-                  IsGameOverFunc isGameOver);
+    void updateGameState(const GameInfo_t& state);
+    void showStartScreen();
+    void showGameOverScreen();
+    void showGameWonScreen();
 
- protected:
-  void paintEvent(QPaintEvent*) override;
-  void keyPressEvent(QKeyEvent*) override;
+protected:
+    void paintEvent(QPaintEvent *event) override;
 
- private slots:
-  void gameTick();
+private:
+    void drawGameField(QPainter& painter);
+    void drawStartScreen(QPainter& painter);
+    void drawGameOverScreen(QPainter& painter);
+    void drawGameWonScreen(QPainter& painter);
+    void drawBorders(QPainter& painter);
+    
+    QColor getCellColor(int cellValue) const;
+    QRect getCellRect(int x, int y) const;
 
- private:
-  QTimer* timer;
-  GameInfo_t gameInfo;
-  bool started = false;
-  bool paused = false;
-
-  UserInputFunc userInputFunc = nullptr;
-  UpdateStateFunc updateStateFunc = nullptr;
-  IsGameOverFunc isGameOverFunc = nullptr;
-
-  void sendUserInput(UserAction_t action, bool hold = false);
-  void updateGame();
-  void renderGameOverScreen(QPainter& p);
-  void renderStartScreen(QPainter& p);
+    GameInfo_t m_currentState;
+    enum class ScreenType {
+        START,
+        GAME,
+        GAME_OVER,
+        GAME_WON
+    } m_currentScreen;
+    
+    static const int CELL_SIZE = 25;
+    static const int FIELD_WIDTH = 10;
+    static const int FIELD_HEIGHT = 20;
+    static const int BORDER_WIDTH = 2;
 };
+
+#endif // GAMEWIDGET_H

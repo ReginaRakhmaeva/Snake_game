@@ -27,5 +27,6 @@ void backend_overlay_piece(GameInfo_t *info_ptr);
 void save_high_score(int high_score);
 
 GameInfo_t backend_get_info(void);
+void backend_free_game_info(GameInfo_t *game_info);
 
 #endif  // BRICKGAME_TETRIS_BACKEND_H_

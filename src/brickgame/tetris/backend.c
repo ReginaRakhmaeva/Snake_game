@@ -121,14 +121,18 @@ GameInfo_t backend_init_game(void) {
   spawn_piece(&current_piece);
   spawn_piece(&next_piece);
 
+  // Правильно инициализируем указатели на field
   info.field = (int **)malloc(FIELD_HEIGHT * sizeof(int *));
   for (int i = 0; i < FIELD_HEIGHT; ++i) {
-    info.field[i] = field[i];
+    info.field[i] = (int *)malloc(FIELD_WIDTH * sizeof(int));
+    memcpy(info.field[i], field[i], FIELD_WIDTH * sizeof(int));
   }
 
+  // Правильно инициализируем указатели на next
   info.next = (int **)malloc(FIGURE_SIZE * sizeof(int *));
   for (int i = 0; i < FIGURE_SIZE; ++i) {
-    info.next[i] = next_piece.shape[i];
+    info.next[i] = (int *)malloc(FIGURE_SIZE * sizeof(int));
+    memcpy(info.next[i], next_piece.shape[i], FIGURE_SIZE * sizeof(int));
   }
 
   info.score = 0;
@@ -247,6 +251,11 @@ BackendStatus backend_handle_input(UserAction_t action, bool hold) {
 void backend_overlay_piece(GameInfo_t *info_ptr) {
   static int temp_field[FIELD_HEIGHT][FIELD_WIDTH];
 
+  // Проверяем валидность указателя
+  if (!info_ptr || !info_ptr->field) {
+    return;
+  }
+
   for (int y = 0; y < FIELD_HEIGHT; ++y) {
     for (int x = 0; x < FIELD_WIDTH; ++x) {
       temp_field[y][x] = field[y][x];
@@ -265,8 +274,11 @@ void backend_overlay_piece(GameInfo_t *info_ptr) {
     }
   }
 
+  // Копируем данные в выделенную память с проверкой
   for (int i = 0; i < FIELD_HEIGHT; ++i) {
-    info_ptr->field[i] = temp_field[i];
+    if (info_ptr->field[i]) {
+      memcpy(info_ptr->field[i], temp_field[i], FIELD_WIDTH * sizeof(int));
+    }
   }
 }
 
@@ -331,7 +343,37 @@ BackendStatus backend_fix_piece(void) {
 //   return BACKEND_OK;
 // }
 
-GameInfo_t backend_get_info(void) { return info; }
+GameInfo_t backend_get_info(void) { 
+  // Обновляем информацию о следующей фигуре
+  for (int i = 0; i < FIGURE_SIZE; ++i) {
+    if (info.next[i]) {
+      memcpy(info.next[i], next_piece.shape[i], FIGURE_SIZE * sizeof(int));
+    }
+  }
+  return info; 
+}
+
+void backend_free_game_info(GameInfo_t *game_info) {
+  if (game_info->field) {
+    for (int i = 0; i < FIELD_HEIGHT; ++i) {
+      if (game_info->field[i]) {
+        free(game_info->field[i]);
+      }
+    }
+    free(game_info->field);
+    game_info->field = NULL;
+  }
+  
+  if (game_info->next) {
+    for (int i = 0; i < FIGURE_SIZE; ++i) {
+      if (game_info->next[i]) {
+        free(game_info->next[i]);
+      }
+    }
+    free(game_info->next);
+    game_info->next = NULL;
+  }
+}
 
 int get_level_speed(int level) {
   int speed = 600 - (level - 1) * 60;

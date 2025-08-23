@@ -1,43 +1,436 @@
-
 #include "../../../include/gui/desktop/mainwindow.h"
 
-#include <QAction>
-#include <QMenuBar>
+#include <QApplication>
+#include <QKeyEvent>
+#include <QMessageBox>
+#include <QPainter>
+#include <QPixmap>
 
-#include "../../../include/gui/desktop/gamewidget.h"
+#include "../../../include/brickgame/common/types.h"
+#include "../../../include/gui/desktop/gameoverdialog.h"
+#include "../../../include/gui/desktop/gameselectiondialog.h"
 
-extern "C" {
-#include "../../../include/brickgame/snake/snake_api.h"
-#include "../../../include/brickgame/tetris/game.h"
-}
+MainWindow::MainWindow(QWidget* parent)
+    : QMainWindow(parent),
+      m_gameController(new GameController(this)),
+      m_gameWidget(new GameWidget(this)),
+      m_gameStarted(false),
+      m_gamePaused(false),
+      m_currentGameType(GameType::TETRIS) {
+  setupUI();
+  setupConnections();
 
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
-  gameWidget = new GameWidget(this);
-  setCentralWidget(gameWidget);
-  setWindowTitle("BrickGame Collection");
-  resize(400, 800);
-
-  QMenu* gameMenu = menuBar()->addMenu("Game");
-  QAction* snakeAction = new QAction("Snake", this);
-  QAction* tetrisAction = new QAction("Tetris", this);
-  gameMenu->addAction(snakeAction);
-  gameMenu->addAction(tetrisAction);
-
-  connect(snakeAction, &QAction::triggered, this, &MainWindow::setSnake);
-  connect(tetrisAction, &QAction::triggered, this, &MainWindow::setTetris);
-
-  setSnake();  // По умолчанию запускаем змейку
+  // Показываем экран выбора игры при запуске
+  showGameSelection();
 }
 
 MainWindow::~MainWindow() {}
 
-void MainWindow::setSnake() {
-  gameWidget->setGameAPI(&userInput, &updateCurrentState, &isGameOver);
+void MainWindow::setupUI() {
+  setWindowTitle("BrickGame Collection");
+  setFixedSize(800, 600);
+  setStyleSheet(
+      "QMainWindow { "
+      "    background-color: #2c3e50; "
+      "}");
+
+  // Центральный виджет
+  m_centralWidget = new QWidget(this);
+  setCentralWidget(m_centralWidget);
+
+  // Главный layout
+  m_mainLayout = new QHBoxLayout(m_centralWidget);
+  m_mainLayout->setSpacing(10);
+  m_mainLayout->setContentsMargins(10, 10, 10, 10);
+
+  // Настройка виджета игры
+  setupGameWidget();
+
+  // Настройка информационной панели
+  setupInfoPanel();
+
+  // Показываем стартовый экран
+  showStartScreen();
 }
 
-void MainWindow::setTetris() {
-  gameWidget->setGameAPI(&userInput,           // из tetris/game.h!
-                         &updateCurrentState,  // из tetris/game.h!
-                         &isGameOver           // из tetris/game.h!
-  );
+void MainWindow::setupGameWidget() {
+  m_gameWidget->setFixedSize(400, 580);
+  m_gameWidget->setStyleSheet(
+      "QWidget { "
+      "    background-color: #34495e; "
+      "    border: 2px solid #ecf0f1; "
+      "    border-radius: 5px; "
+      "}");
+  m_mainLayout->addWidget(m_gameWidget);
 }
+
+void MainWindow::setupInfoPanel() {
+  m_infoPanel = new QWidget(this);
+  m_infoPanel->setFixedWidth(200);
+  m_infoPanel->setStyleSheet(
+      "QWidget { "
+      "    background-color: #34495e; "
+      "    border: 2px solid #3498db; "
+      "    border-radius: 5px; "
+      "    color: white; "
+      "}");
+
+  QVBoxLayout* infoLayout = new QVBoxLayout(m_infoPanel);
+  infoLayout->setSpacing(10);
+  infoLayout->setContentsMargins(10, 10, 10, 10);
+
+  // Единый стиль для всех лейблов
+  QString labelStyle = 
+      "QLabel { "
+      "    font-size: 16px; "
+      "    font-weight: bold; "
+      "    color: #ecf0f1; "
+      "    background-color: #2c3e50; "
+      "    border-radius: 3px; "
+      "    padding: 8px; "
+      "}";
+
+  // Заголовок
+  QLabel* titleLabel = new QLabel("GAME INFO", m_infoPanel);
+  titleLabel->setStyleSheet(
+      "QLabel { "
+      "    font-size: 18px; "
+      "    font-weight: bold; "
+      "    color: #ecf0f1; "
+      "    background-color: #2c3e50; "
+      "    border-radius: 3px; "
+      "    padding: 8px; "
+      "}");
+  infoLayout->addWidget(titleLabel);
+
+  // Счет
+  m_scoreLabel = new QLabel("Score: 0", m_infoPanel);
+  m_scoreLabel->setStyleSheet(labelStyle);
+  infoLayout->addWidget(m_scoreLabel);
+
+  // Рекорд
+  m_highScoreLabel = new QLabel("High Score: 0", m_infoPanel);
+  m_highScoreLabel->setStyleSheet(labelStyle);
+  infoLayout->addWidget(m_highScoreLabel);
+
+  // Уровень
+  m_levelLabel = new QLabel("Level: 1", m_infoPanel);
+  m_levelLabel->setStyleSheet(labelStyle);
+  infoLayout->addWidget(m_levelLabel);
+
+  // Следующая фигура (для тетриса)
+  m_nextLabel = new QLabel("Next:", m_infoPanel);
+  m_nextLabel->setStyleSheet(labelStyle);
+  m_nextLabel->setVisible(false);
+  infoLayout->addWidget(m_nextLabel);
+
+  // Виджет для отображения следующей фигуры
+  m_nextFigureWidget = new QWidget(m_infoPanel);
+  m_nextFigureWidget->setFixedSize(180, 120);
+  m_nextFigureWidget->setStyleSheet(
+      "QWidget { "
+      "    background-color: #2c3e50; "
+      "    border: 2px solid #ecf0f1; "
+      "    border-radius: 3px; "
+      "}");
+  m_nextFigureWidget->setVisible(false);
+
+  // Добавляем layout для правильного отображения QLabel
+  QVBoxLayout* nextFigureLayout = new QVBoxLayout(m_nextFigureWidget);
+  nextFigureLayout->setContentsMargins(0, 0, 0, 0);
+  nextFigureLayout->setSpacing(0);
+
+  infoLayout->addWidget(m_nextFigureWidget);
+
+  // Единый стиль для всех кнопок
+  QString buttonStyle = 
+      "QPushButton { "
+      "    background-color: #3498db; "
+      "    border: 2px solid #2980b9; "
+      "    border-radius: 5px; "
+      "    color: white; "
+      "    font-size: 14px; "
+      "    font-weight: bold; "
+      "    padding: 12px; "
+      "} "
+      "QPushButton:hover { "
+      "    background-color: #2980b9; "
+      "} "
+      "QPushButton:pressed { "
+      "    background-color: #21618c; "
+      "}";
+
+  // Кнопка старт (зеленая)
+  m_startButton = new QPushButton("Start", m_infoPanel);
+  m_startButton->setStyleSheet(buttonStyle.replace("#3498db", "#27ae60").replace("#2980b9", "#229954").replace("#21618c", "#1e8449"));
+  infoLayout->addWidget(m_startButton);
+
+  // Кнопка пауза (синяя)
+  m_pauseButton = new QPushButton("Pause", m_infoPanel);
+  m_pauseButton->setStyleSheet(buttonStyle);
+  infoLayout->addWidget(m_pauseButton);
+
+  // Кнопка выход (красная)
+  m_quitButton = new QPushButton("Quit", m_infoPanel);
+  m_quitButton->setStyleSheet(buttonStyle.replace("#3498db", "#e74c3c").replace("#2980b9", "#c0392b").replace("#21618c", "#a93226"));
+  infoLayout->addWidget(m_quitButton);
+
+  m_mainLayout->addWidget(m_infoPanel);
+}
+
+void MainWindow::setupConnections() {
+  // Подключение сигналов контроллера
+  connect(m_gameController, &GameController::gameStateChanged, this,
+          &MainWindow::onGameStateChanged);
+  connect(m_gameController, &GameController::gameOver, this,
+          &MainWindow::onGameOver);
+  connect(m_gameController, &GameController::gamePaused, this,
+          &MainWindow::onGamePaused);
+  connect(m_gameController, &GameController::gameResumed, this,
+          &MainWindow::onGameResumed);
+
+  // Подключение сигналов кнопок
+  connect(m_startButton, &QPushButton::clicked, this,
+          &MainWindow::onStartButtonClicked);
+  connect(m_pauseButton, &QPushButton::clicked, this,
+          &MainWindow::onPauseButtonClicked);
+  connect(m_quitButton, &QPushButton::clicked, this,
+          &MainWindow::onQuitButtonClicked);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent* event) {
+  switch (event->key()) {
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+      if (!m_gameStarted) {
+        m_gameController->startGame();
+        m_gameStarted = true;
+      }
+      break;
+
+    case Qt::Key_P:
+      if (m_gameStarted && !m_gamePaused) {
+        m_gameController->pauseGame();
+      } else if (m_gameStarted && m_gamePaused) {
+        m_gameController->resumeGame();
+      }
+      break;
+
+    case Qt::Key_Q:
+      if (m_gameStarted) {
+        m_gameController->stopGame();
+        m_gameStarted = false;
+        m_gamePaused = false;
+        close();
+      } else {
+        close();
+      }
+      break;
+
+    case Qt::Key_1:
+      if (!m_gameStarted) {
+        startSelectedGame(GameType::TETRIS);
+      }
+      break;
+
+    case Qt::Key_2:
+      if (!m_gameStarted) {
+        startSelectedGame(GameType::SNAKE);
+      }
+      break;
+
+    default:
+      if (m_gameStarted) {
+        UserAction_t action = m_gameController->mapKeyToAction(event->key());
+        if (action != static_cast<UserAction_t>(-1)) {
+          m_gameController->processInput(action, false);
+        }
+      }
+      break;
+  }
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+  m_gameController->stopGame();
+  event->accept();
+}
+
+void MainWindow::onGameStateChanged(const GameInfo_t& state) {
+  m_gameWidget->updateGameState(state);
+  updateInfoPanel(state);
+}
+
+void MainWindow::onGameOver() {
+  m_gameStarted = false;
+  m_gamePaused = false;
+
+  // Показываем диалог окончания игры
+  GameOverDialog dialog(false, this);
+  connect(&dialog, &GameOverDialog::restartRequested, this,
+          &MainWindow::restartCurrentGame);
+  connect(&dialog, &GameOverDialog::quitRequested, this,
+          &MainWindow::onQuitButtonClicked);
+  dialog.exec();
+}
+
+void MainWindow::onGameWon() {
+  m_gameStarted = false;
+  m_gamePaused = false;
+
+  // Показываем диалог победы
+  GameOverDialog dialog(true, this);
+  connect(&dialog, &GameOverDialog::restartRequested, this,
+          &MainWindow::restartCurrentGame);
+  connect(&dialog, &GameOverDialog::quitRequested, this,
+          &MainWindow::onQuitButtonClicked);
+  dialog.exec();
+}
+
+void MainWindow::onGamePaused() { m_gamePaused = true; }
+
+void MainWindow::onGameResumed() { m_gamePaused = false; }
+
+void MainWindow::showGameSelection() {
+  GameSelectionDialog dialog(this);
+  connect(&dialog, &GameSelectionDialog::gameSelected, this,
+          &MainWindow::startSelectedGame);
+  dialog.exec();
+}
+
+void MainWindow::startSelectedGame(GameType gameType) {
+  m_currentGameType = gameType;
+  if (m_gameController->loadGame(gameType)) {
+    m_gameWidget->showStartScreen();
+    m_gameStarted = false;
+    m_gamePaused = false;
+
+    // Показываем/скрываем next label и виджет в зависимости от игры
+    bool isTetris = (gameType == GameType::TETRIS);
+    m_nextLabel->setVisible(isTetris);
+    m_nextFigureWidget->setVisible(isTetris);
+  } else {
+    QMessageBox::critical(this, "Error",
+                          QString("Failed to load game library: %1")
+                              .arg(m_gameController->getCurrentState().score));
+  }
+}
+
+void MainWindow::restartCurrentGame() {
+  if (m_gameController->loadGame(m_currentGameType)) {
+    m_gameWidget->showStartScreen();
+    m_gameStarted = false;
+    m_gamePaused = false;
+
+    // Показываем/скрываем next label и виджет в зависимости от игры
+    bool isTetris = (m_currentGameType == GameType::TETRIS);
+    m_nextLabel->setVisible(isTetris);
+    m_nextFigureWidget->setVisible(isTetris);
+  } else {
+    QMessageBox::critical(this, "Error",
+                          QString("Failed to load game library: %1")
+                              .arg(m_gameController->getCurrentState().score));
+  }
+}
+
+void MainWindow::updateInfoPanel(const GameInfo_t& state) {
+  m_scoreLabel->setText(QString("Score: %1").arg(state.score));
+  m_highScoreLabel->setText(QString("High Score: %1").arg(state.high_score));
+  m_levelLabel->setText(QString("Level: %1").arg(state.level));
+
+  // Обновляем отображение следующей фигуры для тетриса
+  if (m_currentGameType == GameType::TETRIS) {
+    drawNextFigure(state);
+  }
+}
+
+void MainWindow::drawNextFigure(const GameInfo_t& state) {
+  if (!state.next) {
+    return;
+  }
+
+  if (!m_nextFigureWidget) {
+    return;
+  }
+
+  // Создаем QPixmap для отрисовки следующей фигуры
+  QPixmap pixmap(180, 120);
+  pixmap.fill(Qt::transparent);
+
+  QPainter painter(&pixmap);
+  painter.setRenderHint(QPainter::Antialiasing);
+
+  // Размер ячейки для фигуры 4x4
+  int cellSize = 30;  // Фиксированный размер ячейки
+  int figureWidth = 4 * cellSize;
+  int figureHeight = 4 * cellSize;
+
+  // Центрируем фигуру в виджете
+  int offsetX = (180 - figureWidth) / 2;
+  int offsetY = (120 - figureHeight) / 2;
+
+  // Рисуем следующую фигуру
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      if (state.next[y] && state.next[y][x]) {
+        QRect cellRect(offsetX + x * cellSize, offsetY + y * cellSize, cellSize,
+                       cellSize);
+        painter.fillRect(cellRect,
+                         QColor(0, 0, 255));  // Синий цвет для тетриса
+        painter.setPen(QPen(Qt::white, 1));
+        painter.drawRect(cellRect);
+      }
+    }
+  }
+
+  // Получаем или создаем QLabel для отображения фигуры
+  QLabel* nextFigureLabel = nullptr;
+  QVBoxLayout* layout =
+      qobject_cast<QVBoxLayout*>(m_nextFigureWidget->layout());
+
+  if (layout && layout->count() > 0) {
+    nextFigureLabel = qobject_cast<QLabel*>(layout->itemAt(0)->widget());
+  }
+
+  if (!nextFigureLabel) {
+    nextFigureLabel = new QLabel();
+    nextFigureLabel->setAlignment(Qt::AlignCenter);
+    nextFigureLabel->setFixedSize(180, 120);
+    if (layout) {
+      layout->addWidget(nextFigureLabel);
+    }
+  }
+
+  nextFigureLabel->setPixmap(pixmap);
+  nextFigureLabel->show();
+  m_nextFigureWidget->update();
+}
+
+void MainWindow::onStartButtonClicked() {
+  if (!m_gameStarted) {
+    m_gameController->startGame();
+    m_gameStarted = true;
+  }
+}
+
+void MainWindow::onPauseButtonClicked() {
+  if (m_gameStarted && !m_gamePaused) {
+    m_gameController->pauseGame();
+  } else if (m_gameStarted && m_gamePaused) {
+    m_gameController->resumeGame();
+  }
+}
+
+void MainWindow::onQuitButtonClicked() {
+  if (m_gameStarted) {
+    m_gameController->stopGame();
+    m_gameStarted = false;
+    m_gamePaused = false;
+  }
+  close();
+}
+
+void MainWindow::showStartScreen() { m_gameWidget->showStartScreen(); }
+
+void MainWindow::showGameOverScreen() { m_gameWidget->showGameOverScreen(); }
+
+void MainWindow::showGameWonScreen() { m_gameWidget->showGameWonScreen(); }

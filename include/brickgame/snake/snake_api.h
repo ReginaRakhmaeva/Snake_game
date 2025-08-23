@@ -9,10 +9,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-bool isVictory(void);
-void userInput(UserAction_t action, bool hold);
-GameInfo_t updateCurrentState();
-bool isGameOver();
+
+EXPORT bool isVictory(void);
+EXPORT void userInput(UserAction_t action, bool hold);
+EXPORT GameInfo_t updateCurrentState();
+EXPORT bool isGameOver();
 
 #ifdef __cplusplus
 }

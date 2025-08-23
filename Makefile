@@ -4,8 +4,8 @@ UNAME_S := $(shell uname -s)
 # === Компиляторы и флаги ===
 CC = gcc
 CXX = g++
-CFLAGS = -fPIC -Wall -Wextra -std=c99 -g -O0 -Iinclude
-CXXFLAGS = -fPIC -Wall -Wextra -std=c++20 -g -O0 -Iinclude
+CFLAGS = -fPIC -Wall -Wextra -std=c99 -g -O0 -Iinclude -fvisibility=hidden
+CXXFLAGS = -fPIC -Wall -Wextra -std=c++20 -g -O0 -Iinclude -fvisibility=hidden
 
 # === Настройки под ОС ===
 ifeq ($(UNAME_S),Linux)
@@ -17,6 +17,11 @@ ifeq ($(UNAME_S),Darwin)
     LDFLAGS = -lncurses
     SHARED_EXT = .dylib
     SHARED_FLAGS = -dynamiclib
+endif
+ifeq ($(OS),Windows_NT)
+    LDFLAGS = 
+    SHARED_EXT = .dll
+    SHARED_FLAGS = -shared
 endif
 
 # === Исходники ===
@@ -41,7 +46,7 @@ LIBSNAKE  = libsnake$(SHARED_EXT)
 QT_BUILD_DIR = build_qt
 
 # === Цели ===
-all: $(LIBTETRIS) $(LIBSNAKE) brickgame_cli snake_qt
+all: $(LIBTETRIS) $(LIBSNAKE) brickgame_cli brickgame_desktop
 
 $(LIBTETRIS): $(TETRIS_SRC)
 	$(CC) $(CFLAGS) $(SHARED_FLAGS) -o $@ $(TETRIS_SRC)
@@ -52,11 +57,11 @@ $(LIBSNAKE): $(SNAKE_SRC)
 brickgame_cli: $(CLI_SRC)
 	$(CC) $(CFLAGS) -o $@ $(CLI_SRC) $(LDFLAGS)
 
-snake_qt:
+brickgame_desktop: $(LIBTETRIS) $(LIBSNAKE)
 	@echo "=== Building Qt frontend ==="
-	@mkdir -p $(QT_BUILD_DIR) 
-	cd $(QT_BUILD_DIR) && cmake .. && $(MAKE)
-	
+	@mkdir -p build_qt
+	cd build_qt && cmake "$$(pwd)/.." && make
+	@cp build_qt/brickgame_desktop . || true
 
 install: all
 	@echo "Installing CLI to /usr/local/bin..."
@@ -68,12 +73,58 @@ uninstall:
 	rm -f /usr/local/bin/brickgame_cli
 
 clean:
-	rm -f $(LIBTETRIS) $(LIBSNAKE) brickgame_cli
-	rm -f *.o *.out *.a *.gcda *.gcno
-	rm -f debug.log debug1.log
+	@echo "=== Cleaning all build artifacts ==="
+	# Удаляем исполняемые файлы
+	rm -f $(LIBTETRIS) $(LIBSNAKE) brickgame_cli brickgame_desktop
+	rm -f brickgame_desktop_autogen
+	
+	# Удаляем отладочные символы
+	rm -rf *.dSYM
+	
+	# Удаляем объектные файлы и временные файлы
+	rm -f *.o *.out *.a *.gcda *.gcno *.gcov
+	rm -f *.so *.dylib *.dll
+	rm -f *.exe *.app
+	
+	# Удаляем логи и отладочные файлы
+	rm -f debug*.log debug*.txt
+	rm -f *.log
 	rm -f snake_highscore.txt tetris_highscore.txt
+	
+	# Удаляем директории сборки (но сохраняем CMakeLists.txt)
 	rm -rf $(QT_BUILD_DIR)
-	rm -rf snake_qt test_snake_bin
+	rm -rf build_qt
+	rm -rf test_snake_bin
+	rm -rf CMakeFiles
+	rm -f CMakeCache.txt
+	rm -f cmake_install.cmake
+	rm -f Makefile.cmake
+	
+	# Удаляем файлы Qt
+	rm -rf *.moc
+	rm -rf moc_*.cpp
+	rm -rf ui_*.h
+	rm -rf qrc_*.cpp
+	rm -rf *_autogen
+	
+	# Удаляем временные файлы системы
+	rm -rf .DS_Store
+	rm -rf Thumbs.db
+	rm -f *~
+	rm -f .#*
+	rm -f #*#
+	
+	# Удаляем файлы IDE
+	rm -rf .vscode
+	rm -rf .idea
+	rm -f *.swp *.swo
+	rm -f *~
+	
+	# Удаляем архивы
+	rm -f brickgame-*.tar.gz
+	rm -f brickgame-*.zip
+	
+	@echo "=== Clean completed ==="
 
 dist: clean
 	@echo "Creating distribution archive..."

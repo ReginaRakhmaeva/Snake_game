@@ -3,6 +3,9 @@
 #ifndef BRICKGAME_COMMON_TYPES_H
 #define BRICKGAME_COMMON_TYPES_H
 
+// Макрос для экспорта функций в разделяемых библиотеках
+#define EXPORT __attribute__((visibility("default")))
+
 typedef enum {
   Start,
   Pause,

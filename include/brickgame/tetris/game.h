@@ -9,9 +9,9 @@
 extern "C" {
 #endif
 
-void userInput(UserAction_t action, bool hold);
-GameInfo_t updateCurrentState();
-bool isGameOver();
+EXPORT void userInput(UserAction_t action, bool hold);
+EXPORT GameInfo_t updateCurrentState();
+EXPORT bool isGameOver();
 
 #ifdef __cplusplus
 }

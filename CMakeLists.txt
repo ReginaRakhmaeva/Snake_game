@@ -1,42 +1,51 @@
 cmake_minimum_required(VERSION 3.16)
-project(BrickGameSnakeQt VERSION 1.0 LANGUAGES CXX)
+project(brickgame_desktop)
 
-# Указываем стандарт
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
-# Ищем Qt6 (или Qt5 при необходимости)
-find_package(Qt6 6.2 COMPONENTS Widgets REQUIRED)
 
-# Исходники Qt-версии
-set(SOURCES
-    src/gui/desktop/main.cpp
-    src/gui/desktop/mainwindow.cpp
-    src/gui/desktop/gamewidget.cpp
-    src/brickgame/snake/snake_api.cpp
-    src/brickgame/snake/snake_fsm.cpp
-    src/brickgame/snake/snake_game.cpp
-)
+# Определение операционной системы
+if(APPLE)
+    set(SHARED_EXT ".dylib")
+elseif(WIN32)
+    set(SHARED_EXT ".dll")
+else()
+    set(SHARED_EXT ".so")
+endif()
 
-set(HEADERS
-    include/gui/desktop/mainwindow.h
-    include/gui/desktop/gamewidget.h
-)
-
-# Для автоматической генерации moc-файлов
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Создаем исполняемый файл
-add_executable(snake_qt ${SOURCES} ${HEADERS})
+set(DESKTOP_SOURCES
+    src/gui/desktop/main.cpp
+    src/gui/desktop/mainwindow.cpp
+    src/gui/desktop/gamewidget.cpp
+    src/gui/desktop/gamecontroller.cpp
+    src/gui/desktop/gameselectiondialog.cpp
+    src/gui/desktop/gameoverdialog.cpp
+)
 
-# Линкуем с Qt
-target_link_libraries(snake_qt PRIVATE Qt6::Widgets)
+set(DESKTOP_HEADERS
+    include/gui/desktop/mainwindow.h
+    include/gui/desktop/gamewidget.h
+    include/gui/desktop/gamecontroller.h
+    include/gui/desktop/gameselectiondialog.h
+    include/gui/desktop/gameoverdialog.h
+)
 
-# Опционально — включить строгие предупреждения
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(snake_qt PRIVATE -Wall -Wextra -pedantic)
-elseif (MSVC)
-    target_compile_options(snake_qt PRIVATE /W4 /permissive-)
+add_executable(brickgame_desktop ${DESKTOP_SOURCES} ${DESKTOP_HEADERS})
+target_link_libraries(brickgame_desktop Qt6::Core Qt6::Widgets)
+target_include_directories(brickgame_desktop PRIVATE include)
+
+# Кроссплатформенное подключение библиотек
+if(APPLE)
+    target_link_libraries(brickgame_desktop ${CMAKE_CURRENT_SOURCE_DIR}/libtetris${SHARED_EXT} ${CMAKE_CURRENT_SOURCE_DIR}/libsnake${SHARED_EXT} dl)
+elseif(WIN32)
+    target_link_libraries(brickgame_desktop ${CMAKE_CURRENT_SOURCE_DIR}/libtetris${SHARED_EXT} ${CMAKE_CURRENT_SOURCE_DIR}/libsnake${SHARED_EXT})
+else()
+    target_link_libraries(brickgame_desktop ${CMAKE_CURRENT_SOURCE_DIR}/libtetris${SHARED_EXT} ${CMAKE_CURRENT_SOURCE_DIR}/libsnake${SHARED_EXT} dl)
 endif()
+
+set_target_properties(brickgame_desktop PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
