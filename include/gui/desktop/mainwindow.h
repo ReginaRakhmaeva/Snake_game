@@ -29,11 +29,11 @@ private slots:
     void onGameWon();
     void onGamePaused();
     void onGameResumed();
-    void showGameSelection();
-    void startSelectedGame(GameType gameType);
-    void restartCurrentGame();
+    void onGameSelected(GameType gameType);
+    void onShowGameSelectionRequested();
+    void onApplicationCloseRequested();
     
-    // Слоты для кнопок
+    // Слоты для кнопок (только UI логика)
     void onStartButtonClicked();
     void onPauseButtonClicked();
     void onQuitButtonClicked();
@@ -70,8 +70,6 @@ private:
     QWidget* m_centralWidget;
     QHBoxLayout* m_mainLayout;
     
-    bool m_gameStarted;
-    bool m_gamePaused;
     GameType m_currentGameType;
 };
 

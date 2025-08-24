@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QCloseEvent>
 #include "gamecontroller.h"
 
 class GameSelectionDialog : public QDialog
@@ -15,6 +16,9 @@ class GameSelectionDialog : public QDialog
 public:
     explicit GameSelectionDialog(QWidget *parent = nullptr);
     ~GameSelectionDialog();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
 
 signals:
     void gameSelected(GameType gameType);

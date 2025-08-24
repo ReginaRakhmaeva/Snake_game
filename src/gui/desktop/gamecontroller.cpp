@@ -249,3 +249,52 @@ UserAction_t GameController::mapKeyToAction(int key) const
             return static_cast<UserAction_t>(-1); // Неизвестная клавиша
     }
 }
+
+// Новые методы для управления игрой
+void GameController::selectGame(GameType gameType)
+{
+    if (loadGame(gameType)) {
+        emit gameSelected(gameType);
+    }
+}
+
+void GameController::restartGame()
+{
+    if (loadGame(m_currentGameType)) {
+        emit gameSelected(m_currentGameType);
+    }
+}
+
+void GameController::handleStartButton()
+{
+    if (!m_gameStarted) {
+        startGame();
+    }
+}
+
+void GameController::handlePauseButton()
+{
+    if (m_gameStarted && !m_gamePaused) {
+        pauseGame();
+    } else if (m_gameStarted && m_gamePaused) {
+        resumeGame();
+    }
+}
+
+void GameController::handleQuitButton()
+{
+    if (m_gameStarted) {
+        stopGame();
+    }
+    closeApplication();
+}
+
+void GameController::showGameSelection()
+{
+    emit showGameSelectionRequested();
+}
+
+void GameController::closeApplication()
+{
+    emit applicationCloseRequested();
+}

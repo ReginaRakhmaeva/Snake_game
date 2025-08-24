@@ -48,7 +48,7 @@ void GameOverDialog::setupUI(bool isWon) {
   buttonLayout->setSpacing(20);
 
   // Единый стиль для кнопок
-  QString buttonStyle = 
+  QString buttonStyle =
       "QPushButton { "
       "    background-color: #3498db; "
       "    border: 2px solid #2980b9; "
@@ -66,10 +66,10 @@ void GameOverDialog::setupUI(bool isWon) {
       "}";
 
   m_restartButton->setFixedSize(100, 40);
-  m_restartButton->setStyleSheet(buttonStyle.replace("#3498db", "#27ae60").replace("#2980b9", "#229954").replace("#21618c", "#1e8449"));
+  m_restartButton->setStyleSheet(buttonStyle);
 
   m_quitButton->setFixedSize(100, 40);
-  m_quitButton->setStyleSheet(buttonStyle.replace("#3498db", "#e74c3c").replace("#2980b9", "#c0392b").replace("#21618c", "#a93226"));
+  m_quitButton->setStyleSheet(buttonStyle);
 
   buttonLayout->addWidget(m_restartButton);
   buttonLayout->addWidget(m_quitButton);

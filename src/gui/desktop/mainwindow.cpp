@@ -14,14 +14,15 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
       m_gameController(new GameController(this)),
       m_gameWidget(new GameWidget(this)),
-      m_gameStarted(false),
-      m_gamePaused(false),
       m_currentGameType(GameType::TETRIS) {
   setupUI();
   setupConnections();
 
+  // Скрываем главное окно до выбора игры
+  hide();
+
   // Показываем экран выбора игры при запуске
-  showGameSelection();
+  m_gameController->showGameSelection();
 }
 
 MainWindow::~MainWindow() {}
@@ -49,8 +50,7 @@ void MainWindow::setupUI() {
   // Настройка информационной панели
   setupInfoPanel();
 
-  // Показываем стартовый экран
-  showStartScreen();
+  // НЕ показываем стартовый экран здесь - он будет показан после выбора игры
 }
 
 void MainWindow::setupGameWidget() {
@@ -69,7 +69,7 @@ void MainWindow::setupInfoPanel() {
   m_infoPanel->setFixedWidth(200);
   m_infoPanel->setStyleSheet(
       "QWidget { "
-      "    background-color: #34495e; "
+      "    background-color: #2c346fff; "
       "    border: 2px solid #3498db; "
       "    border-radius: 5px; "
       "    color: white; "
@@ -80,7 +80,7 @@ void MainWindow::setupInfoPanel() {
   infoLayout->setContentsMargins(10, 10, 10, 10);
 
   // Единый стиль для всех лейблов
-  QString labelStyle = 
+  QString labelStyle =
       "QLabel { "
       "    font-size: 16px; "
       "    font-weight: bold; "
@@ -92,15 +92,7 @@ void MainWindow::setupInfoPanel() {
 
   // Заголовок
   QLabel* titleLabel = new QLabel("GAME INFO", m_infoPanel);
-  titleLabel->setStyleSheet(
-      "QLabel { "
-      "    font-size: 18px; "
-      "    font-weight: bold; "
-      "    color: #ecf0f1; "
-      "    background-color: #2c3e50; "
-      "    border-radius: 3px; "
-      "    padding: 8px; "
-      "}");
+  titleLabel->setStyleSheet(labelStyle);
   infoLayout->addWidget(titleLabel);
 
   // Счет
@@ -127,12 +119,7 @@ void MainWindow::setupInfoPanel() {
   // Виджет для отображения следующей фигуры
   m_nextFigureWidget = new QWidget(m_infoPanel);
   m_nextFigureWidget->setFixedSize(180, 120);
-  m_nextFigureWidget->setStyleSheet(
-      "QWidget { "
-      "    background-color: #2c3e50; "
-      "    border: 2px solid #ecf0f1; "
-      "    border-radius: 3px; "
-      "}");
+  m_nextFigureWidget->setStyleSheet(labelStyle);
   m_nextFigureWidget->setVisible(false);
 
   // Добавляем layout для правильного отображения QLabel
@@ -143,7 +130,7 @@ void MainWindow::setupInfoPanel() {
   infoLayout->addWidget(m_nextFigureWidget);
 
   // Единый стиль для всех кнопок
-  QString buttonStyle = 
+  QString buttonStyle =
       "QPushButton { "
       "    background-color: #3498db; "
       "    border: 2px solid #2980b9; "
@@ -162,7 +149,7 @@ void MainWindow::setupInfoPanel() {
 
   // Кнопка старт (зеленая)
   m_startButton = new QPushButton("Start", m_infoPanel);
-  m_startButton->setStyleSheet(buttonStyle.replace("#3498db", "#27ae60").replace("#2980b9", "#229954").replace("#21618c", "#1e8449"));
+  m_startButton->setStyleSheet(buttonStyle);
   infoLayout->addWidget(m_startButton);
 
   // Кнопка пауза (синяя)
@@ -172,7 +159,7 @@ void MainWindow::setupInfoPanel() {
 
   // Кнопка выход (красная)
   m_quitButton = new QPushButton("Quit", m_infoPanel);
-  m_quitButton->setStyleSheet(buttonStyle.replace("#3498db", "#e74c3c").replace("#2980b9", "#c0392b").replace("#21618c", "#a93226"));
+  m_quitButton->setStyleSheet(buttonStyle);
   infoLayout->addWidget(m_quitButton);
 
   m_mainLayout->addWidget(m_infoPanel);
@@ -188,8 +175,14 @@ void MainWindow::setupConnections() {
           &MainWindow::onGamePaused);
   connect(m_gameController, &GameController::gameResumed, this,
           &MainWindow::onGameResumed);
+  connect(m_gameController, &GameController::gameSelected, this,
+          &MainWindow::onGameSelected);
+  connect(m_gameController, &GameController::showGameSelectionRequested, this,
+          &MainWindow::onShowGameSelectionRequested);
+  connect(m_gameController, &GameController::applicationCloseRequested, this,
+          &MainWindow::onApplicationCloseRequested);
 
-  // Подключение сигналов кнопок
+  // Подключение сигналов кнопок (только UI логика)
   connect(m_startButton, &QPushButton::clicked, this,
           &MainWindow::onStartButtonClicked);
   connect(m_pauseButton, &QPushButton::clicked, this,
@@ -202,45 +195,20 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
   switch (event->key()) {
     case Qt::Key_Return:
     case Qt::Key_Enter:
-      if (!m_gameStarted) {
-        m_gameController->startGame();
-        m_gameStarted = true;
-      }
+      m_gameController->handleStartButton();
       break;
 
     case Qt::Key_P:
-      if (m_gameStarted && !m_gamePaused) {
-        m_gameController->pauseGame();
-      } else if (m_gameStarted && m_gamePaused) {
-        m_gameController->resumeGame();
-      }
+      m_gameController->handlePauseButton();
       break;
 
     case Qt::Key_Q:
-      if (m_gameStarted) {
-        m_gameController->stopGame();
-        m_gameStarted = false;
-        m_gamePaused = false;
-        close();
-      } else {
-        close();
-      }
-      break;
-
-    case Qt::Key_1:
-      if (!m_gameStarted) {
-        startSelectedGame(GameType::TETRIS);
-      }
-      break;
-
-    case Qt::Key_2:
-      if (!m_gameStarted) {
-        startSelectedGame(GameType::SNAKE);
-      }
+      m_gameController->handleQuitButton();
       break;
 
     default:
-      if (m_gameStarted) {
+      // Используем методы GameController для проверки состояния
+      if (m_gameController->isGameStarted() && !m_gameController->isGamePaused()) {
         UserAction_t action = m_gameController->mapKeyToAction(event->key());
         if (action != static_cast<UserAction_t>(-1)) {
           m_gameController->processInput(action, false);
@@ -261,75 +229,64 @@ void MainWindow::onGameStateChanged(const GameInfo_t& state) {
 }
 
 void MainWindow::onGameOver() {
-  m_gameStarted = false;
-  m_gamePaused = false;
+  // Состояние игры управляется GameController, не нужно обновлять локальные переменные
 
   // Показываем диалог окончания игры
   GameOverDialog dialog(false, this);
-  connect(&dialog, &GameOverDialog::restartRequested, this,
-          &MainWindow::restartCurrentGame);
-  connect(&dialog, &GameOverDialog::quitRequested, this,
-          &MainWindow::onQuitButtonClicked);
+  connect(&dialog, &GameOverDialog::restartRequested, m_gameController,
+          &GameController::restartGame);
+  connect(&dialog, &GameOverDialog::quitRequested, m_gameController,
+          &GameController::closeApplication);
   dialog.exec();
 }
 
 void MainWindow::onGameWon() {
-  m_gameStarted = false;
-  m_gamePaused = false;
+  // Состояние игры управляется GameController, не нужно обновлять локальные переменные
 
   // Показываем диалог победы
   GameOverDialog dialog(true, this);
-  connect(&dialog, &GameOverDialog::restartRequested, this,
-          &MainWindow::restartCurrentGame);
-  connect(&dialog, &GameOverDialog::quitRequested, this,
-          &MainWindow::onQuitButtonClicked);
+  connect(&dialog, &GameOverDialog::restartRequested, m_gameController,
+          &GameController::restartGame);
+  connect(&dialog, &GameOverDialog::quitRequested, m_gameController,
+          &GameController::closeApplication);
   dialog.exec();
 }
 
-void MainWindow::onGamePaused() { m_gamePaused = true; }
-
-void MainWindow::onGameResumed() { m_gamePaused = false; }
-
-void MainWindow::showGameSelection() {
-  GameSelectionDialog dialog(this);
-  connect(&dialog, &GameSelectionDialog::gameSelected, this,
-          &MainWindow::startSelectedGame);
-  dialog.exec();
+void MainWindow::onGamePaused() { 
+  // Состояние паузы управляется GameController
 }
 
-void MainWindow::startSelectedGame(GameType gameType) {
+void MainWindow::onGameResumed() { 
+  // Состояние паузы управляется GameController
+}
+
+void MainWindow::onGameSelected(GameType gameType) {
   m_currentGameType = gameType;
-  if (m_gameController->loadGame(gameType)) {
-    m_gameWidget->showStartScreen();
-    m_gameStarted = false;
-    m_gamePaused = false;
+  
+  // Показываем главное окно после выбора игры
+  show();
+  
+  m_gameWidget->showStartScreen();
 
-    // Показываем/скрываем next label и виджет в зависимости от игры
-    bool isTetris = (gameType == GameType::TETRIS);
-    m_nextLabel->setVisible(isTetris);
-    m_nextFigureWidget->setVisible(isTetris);
-  } else {
-    QMessageBox::critical(this, "Error",
-                          QString("Failed to load game library: %1")
-                              .arg(m_gameController->getCurrentState().score));
+  // Показываем/скрываем next label и виджет в зависимости от игры
+  bool isTetris = (gameType == GameType::TETRIS);
+  m_nextLabel->setVisible(isTetris);
+  m_nextFigureWidget->setVisible(isTetris);
+}
+
+void MainWindow::onShowGameSelectionRequested() {
+  GameSelectionDialog dialog(this);
+  connect(&dialog, &GameSelectionDialog::gameSelected, m_gameController,
+          &GameController::selectGame);
+  
+  // Если диалог закрыт без выбора игры (через крестик), закрываем приложение
+  if (dialog.exec() != QDialog::Accepted) {
+    m_gameController->closeApplication();
   }
 }
 
-void MainWindow::restartCurrentGame() {
-  if (m_gameController->loadGame(m_currentGameType)) {
-    m_gameWidget->showStartScreen();
-    m_gameStarted = false;
-    m_gamePaused = false;
-
-    // Показываем/скрываем next label и виджет в зависимости от игры
-    bool isTetris = (m_currentGameType == GameType::TETRIS);
-    m_nextLabel->setVisible(isTetris);
-    m_nextFigureWidget->setVisible(isTetris);
-  } else {
-    QMessageBox::critical(this, "Error",
-                          QString("Failed to load game library: %1")
-                              .arg(m_gameController->getCurrentState().score));
-  }
+void MainWindow::onApplicationCloseRequested() {
+  close();
 }
 
 void MainWindow::updateInfoPanel(const GameInfo_t& state) {
@@ -406,27 +363,15 @@ void MainWindow::drawNextFigure(const GameInfo_t& state) {
 }
 
 void MainWindow::onStartButtonClicked() {
-  if (!m_gameStarted) {
-    m_gameController->startGame();
-    m_gameStarted = true;
-  }
+  m_gameController->handleStartButton();
 }
 
 void MainWindow::onPauseButtonClicked() {
-  if (m_gameStarted && !m_gamePaused) {
-    m_gameController->pauseGame();
-  } else if (m_gameStarted && m_gamePaused) {
-    m_gameController->resumeGame();
-  }
+  m_gameController->handlePauseButton();
 }
 
 void MainWindow::onQuitButtonClicked() {
-  if (m_gameStarted) {
-    m_gameController->stopGame();
-    m_gameStarted = false;
-    m_gamePaused = false;
-  }
-  close();
+  m_gameController->handleQuitButton();
 }
 
 void MainWindow::showStartScreen() { m_gameWidget->showStartScreen(); }

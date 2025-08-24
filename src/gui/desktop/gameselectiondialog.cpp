@@ -1,6 +1,7 @@
 #include "../../../include/gui/desktop/gameselectiondialog.h"
 
 #include <QApplication>
+#include <QCloseEvent>
 
 GameSelectionDialog::GameSelectionDialog(QWidget* parent)
     : QDialog(parent),
@@ -17,6 +18,12 @@ GameSelectionDialog::GameSelectionDialog(QWidget* parent)
 }
 
 GameSelectionDialog::~GameSelectionDialog() {}
+
+void GameSelectionDialog::closeEvent(QCloseEvent* event) {
+  // При закрытии через крестик устанавливаем результат как Rejected
+  reject();
+  event->accept();
+}
 
 void GameSelectionDialog::setupUI() {
   setWindowTitle("Game Selection");
@@ -46,10 +53,10 @@ void GameSelectionDialog::setupUI() {
   buttonLayout->setSpacing(20);
 
   // Единый стиль для кнопок
-  QString buttonStyle = 
+  QString buttonStyle =
       "QPushButton { "
-      "    background-color: #3498db; "
-      "    border: 2px solid #2980b9; "
+      "    background-color: #27ae60; "
+      "    border: 2px solid #229954; "
       "    border-radius: 5px; "
       "    color: white; "
       "    font-size: 14px; "
@@ -57,14 +64,14 @@ void GameSelectionDialog::setupUI() {
       "    padding: 8px; "
       "} "
       "QPushButton:hover { "
-      "    background-color: #2980b9; "
+      "    background-color: #229954; "
       "} "
       "QPushButton:pressed { "
-      "    background-color: #21618c; "
+      "    background-color: #1e8449; "
       "}";
 
   m_tetrisButton->setFixedSize(100, 40);
-  m_tetrisButton->setStyleSheet(buttonStyle.replace("#3498db", "#27ae60").replace("#2980b9", "#229954").replace("#21618c", "#1e8449"));
+  m_tetrisButton->setStyleSheet(buttonStyle);
 
   m_snakeButton->setFixedSize(100, 40);
   m_snakeButton->setStyleSheet(buttonStyle);

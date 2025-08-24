@@ -8,7 +8,6 @@
 #include <memory>
 #include "../../brickgame/common/types.h"
 
-// Перечисление поддерживаемых игр
 enum class GameType {
     TETRIS,
     SNAKE
@@ -45,6 +44,14 @@ public:
     bool isGamePaused() const;
     GameType getCurrentGameType() const;
     UserAction_t mapKeyToAction(int key) const;
+    
+    void selectGame(GameType gameType);
+    void restartGame();
+    void handleStartButton();
+    void handlePauseButton();
+    void handleQuitButton();
+    void showGameSelection();
+    void closeApplication();
 
 signals:
     void gameStateChanged(const GameInfo_t& state);
@@ -52,6 +59,9 @@ signals:
     void gameWon();
     void gamePaused();
     void gameResumed();
+    void gameSelected(GameType gameType);
+    void showGameSelectionRequested();
+    void applicationCloseRequested();
 
 private slots:
     void updateGame();
