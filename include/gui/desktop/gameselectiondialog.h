@@ -22,6 +22,7 @@ protected:
 
 signals:
     void gameSelected(GameType gameType);
+    void dialogRejected();
 
 private slots:
     void onTetrisSelected();

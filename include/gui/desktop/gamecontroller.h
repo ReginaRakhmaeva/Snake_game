@@ -4,24 +4,9 @@
 #include <QObject>
 #include <QTimer>
 #include <QKeyEvent>
-#include <dlfcn.h>
 #include <memory>
 #include "../../brickgame/common/types.h"
-
-enum class GameType {
-    TETRIS,
-    SNAKE
-};
-
-// Структура для работы с API игры
-struct GameAPI {
-    void* lib_handle = nullptr;
-    void (*userInput)(UserAction_t action, bool hold) = nullptr;
-    GameInfo_t (*updateState)(void) = nullptr;
-    bool (*isOver)(void) = nullptr;
-    bool valid = false;
-    QString error;
-};
+#include "libraryloader.h"
 
 class GameController : public QObject
 {
@@ -38,22 +23,24 @@ public:
     void resumeGame();
     void stopGame();
     void processInput(UserAction_t action, bool hold = false);
+    
     GameInfo_t getCurrentState() const;
     bool isGameOver() const;
     bool isGameStarted() const;
     bool isGamePaused() const;
     GameType getCurrentGameType() const;
-    UserAction_t mapKeyToAction(int key) const;
     
-    void selectGame(GameType gameType);
-    void restartGame();
+    UserAction_t mapKeyToAction(int key) const;
+    void handleKeyPress(int key);
     void handleStartButton();
     void handlePauseButton();
     void handleQuitButton();
+    void handleGameSelection(GameType gameType);
+    void handleRestartGame();
     void showGameSelection();
     void closeApplication();
 
-signals:
+signals: 
     void gameStateChanged(const GameInfo_t& state);
     void gameOver();
     void gameWon();
@@ -67,13 +54,11 @@ private slots:
     void updateGame();
 
 private:
-    GameAPI m_api;
+    LibraryLoader* m_libraryLoader;
     GameType m_currentGameType;
     QTimer* m_gameTimer;
     bool m_gameStarted;
     bool m_gamePaused;
-    
-    QString getLibraryPath(GameType gameType) const;
 };
 
 #endif // GAMECONTROLLER_H

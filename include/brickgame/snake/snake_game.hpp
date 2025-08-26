@@ -34,9 +34,7 @@ class SnakeGame {
   GameInfo_t GetGameInfo() const;
 
   SnakeGameState GetState() const;
-  // раньше был приватным
   void FreeGameInfo(GameInfo_t& info) const;
-  // Новый метод
   void Tick();
 
  private:
@@ -65,6 +63,8 @@ class SnakeGame {
   int level_;
   int speed_;
   bool accelerated_;
+  int consecutive_moves_;
+  SnakeDirection last_direction_;
 
   int field_[kGameHeight][kGameWidth];
   std::mt19937 gen_;
@@ -72,7 +72,6 @@ class SnakeGame {
 
 class SnakeGameTestHelper {
  public:
-  // ==== Базовые геттеры ====
   static SnakeSegment GetHead(const SnakeGame& game) {
     return game.snake_.front();
   }
@@ -90,41 +89,33 @@ class SnakeGameTestHelper {
   static int GetSpeed(const SnakeGame& game) { return game.speed_; }
   static SnakeGameState GetState(const SnakeGame& game) { return game.state_; }
 
-  // ==== Управление внутренними полями ====
   static void SetLength(SnakeGame& game, int length) { game.length_ = length; }
   static void SetState(SnakeGame& game, SnakeGameState state) {
     game.state_ = state;
   }
 
-  // ==== Работа с яблоком ====
   static void ForceAppleAt(SnakeGame& game, int x, int y) {
     game.apple_x_ = x;
     game.apple_y_ = y;
     game.field_[y][x] = static_cast<int>(CellType::Apple);
   }
-  // Принудительно выставить скорость (для теста)
   static void ForceSpeed(SnakeGame& game, int speed) { game.speed_ = speed; }
 
   static void CallPlaceApple(SnakeGame& game) { game.PlaceApple(); }
 
-  // ==== Проверка коллизий ====
   static bool TestCollision(SnakeGame& game, int x, int y) {
     return game.CheckCollision(x, y);
   }
 
-  // ==== Сценарные действия для тестов ====
   static void MoveSnakeToWall(SnakeGame& game) {
-    // Двигаем змею до правой стены
     while (GetHead(game).x < kGameWidth - 1 &&
            game.GetState() == SnakeGameState::Running) {
       game.Tick();
     }
-    // Следующий тик должен убить её
     game.Tick();
   }
 
   static void ExtendSnakeToWin(SnakeGame& game) {
-    // Насильно делаем максимальную длину
     SnakeSegments(game).clear();
     for (int y = 0; y < kGameHeight; ++y) {
       for (int x = 0; x < kGameWidth; ++x) {

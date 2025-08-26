@@ -23,6 +23,7 @@ set(DESKTOP_SOURCES
     src/gui/desktop/mainwindow.cpp
     src/gui/desktop/gamewidget.cpp
     src/gui/desktop/gamecontroller.cpp
+    src/gui/desktop/libraryloader.cpp
     src/gui/desktop/gameselectiondialog.cpp
     src/gui/desktop/gameoverdialog.cpp
 )
@@ -31,6 +32,7 @@ set(DESKTOP_HEADERS
     include/gui/desktop/mainwindow.h
     include/gui/desktop/gamewidget.h
     include/gui/desktop/gamecontroller.h
+    include/gui/desktop/libraryloader.h
     include/gui/desktop/gameselectiondialog.h
     include/gui/desktop/gameoverdialog.h
 )

@@ -5,6 +5,8 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include "../../brickgame/common/types.h"
+#include "libraryloader.h"
+#include "../../brickgame/common/game_constants.h"
 
 class GameWidget : public QWidget
 {
@@ -18,6 +20,7 @@ public:
     void showStartScreen();
     void showGameOverScreen();
     void showGameWonScreen();
+    void setGameType(GameType gameType);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -33,6 +36,7 @@ private:
     QRect getCellRect(int x, int y) const;
 
     GameInfo_t m_currentState;
+    GameType m_currentGameType;
     enum class ScreenType {
         START,
         GAME,
@@ -41,8 +45,6 @@ private:
     } m_currentScreen;
     
     static const int CELL_SIZE = 25;
-    static const int FIELD_WIDTH = 10;
-    static const int FIELD_HEIGHT = 20;
     static const int BORDER_WIDTH = 2;
 };
 

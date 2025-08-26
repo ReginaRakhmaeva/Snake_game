@@ -33,7 +33,6 @@ private slots:
     void onShowGameSelectionRequested();
     void onApplicationCloseRequested();
     
-    // Слоты для кнопок (только UI логика)
     void onStartButtonClicked();
     void onPauseButtonClicked();
     void onQuitButtonClicked();
@@ -48,11 +47,11 @@ private:
     void showGameWonScreen();
     void setupConnections();
     void drawNextFigure(const GameInfo_t& state);
+    void updateUIForGameType(GameType gameType);
 
     GameController* m_gameController;
     GameWidget* m_gameWidget;
     
-    // Информационная панель
     QWidget* m_infoPanel;
     QLabel* m_scoreLabel;
     QLabel* m_highScoreLabel;
@@ -61,12 +60,10 @@ private:
     QWidget* m_nextFigureWidget;
 
     
-    // Кнопки навигации
     QPushButton* m_startButton;
     QPushButton* m_pauseButton;
     QPushButton* m_quitButton;
     
-    // Центральный виджет
     QWidget* m_centralWidget;
     QHBoxLayout* m_mainLayout;
     

@@ -94,7 +94,14 @@ clean:
 	# Удаляем директории сборки (но сохраняем CMakeLists.txt)
 	rm -rf $(QT_BUILD_DIR)
 	rm -rf build_qt
-	rm -rf test_snake_bin
+	rm -f test/*.gcno test/*.gcda
+	rm -f test/test_snake_bin test/test_tetris_bin
+	rm -f test/coverage.info test/coverage_filtered.info
+	rm -rf test/coverage_report test/lcov_report
+	rm -rf coverage_report
+	rm -rf lcov_report
+	rm -f coverage.info
+	rm -f coverage_filtered.info
 	rm -rf CMakeFiles
 	rm -f CMakeCache.txt
 	rm -f cmake_install.cmake
@@ -131,17 +138,60 @@ dist: clean
 	tar -czf brickgame-$(shell date +%Y%m%d).tar.gz *
 
 # === Тесты ===
-TEST_SNAKE_SRC = test_snake/test_snake_game.cpp \
-				test_snake/test_main.cpp \
-                 test_snake/test_snake_fsm.cpp
+TEST_SNAKE_SRC = test/test_snake/test_snake_game.cpp \
+				test/test_snake/test_main.cpp \
+                 test/test_snake/test_snake_fsm.cpp
 
-TEST_SNAKE_BIN = test_snake_bin
+TEST_TETRIS_SRC = test/test_tetris/test_tetris_game.cpp \
+                  test/test_tetris/test_tetris_fsm.cpp \
+                  test/test_tetris/test_main.cpp
 
+TEST_SNAKE_BIN = test/test_snake_bin
+TEST_TETRIS_BIN = test/test_tetris_bin
 
+# Тесты Snake (ваши существующие)
 test_snake: $(LIBSNAKE) $(TEST_SNAKE_SRC)
-	$(CXX) $(CXXFLAGS) -o test_snake_bin $(TEST_SNAKE_SRC) -L. -lsnake -lgtest -lpthread
-	LD_LIBRARY_PATH=. ./test_snake_bin
+	@echo "=== Building Snake tests ==="
+	$(CXX) $(CXXFLAGS) -o $(TEST_SNAKE_BIN) $(TEST_SNAKE_SRC) -L. -lsnake -lgtest -lgtest_main -lpthread
+	@echo "=== Running Snake tests ==="
+	LD_LIBRARY_PATH=. ./$(TEST_SNAKE_BIN)
 
+# Тесты Tetris (новые)
+test_tetris: $(LIBTETRIS) $(TEST_TETRIS_SRC)
+	@echo "=== Building Tetris tests ==="
+	$(CXX) $(CXXFLAGS) -o $(TEST_TETRIS_BIN) $(TEST_TETRIS_SRC) -L. -ltetris -lgtest -lgtest_main -lpthread
+	@echo "=== Running Tetris tests ==="
+	LD_LIBRARY_PATH=. ./$(TEST_TETRIS_BIN)
 
-.PHONY: all clean install uninstall dist snake_qt test_snake
+# Все тесты
+test: test_snake test_tetris
+	@echo "=== All tests completed ==="
+
+# Покрытие кода (библиотек)
+coverage: CXXFLAGS += -fprofile-arcs -ftest-coverage
+coverage: clean_libs $(LIBSNAKE) $(LIBTETRIS) test
+	@echo "=== Generating coverage report for libraries ==="
+	gcov -r src/brickgame/snake/*.cpp src/brickgame/tetris/*.c
+	lcov --capture --directory . --output-file test/coverage.info
+	lcov --remove test/coverage.info '/usr/*' '/opt/*' '/tmp/*' 'test_*' --output-file test/coverage_filtered.info
+	genhtml test/coverage_filtered.info --output-directory test/coverage_report --title "BrickGame Libraries Coverage"
+
+# LCOV отчет с HTML (покрытие библиотек)
+lcov: CXXFLAGS += -fprofile-arcs -ftest-coverage
+lcov: clean_libs $(LIBSNAKE) $(LIBTETRIS) test
+	@echo "=== Generating LCOV HTML report for libraries ==="
+	lcov --capture --directory . --output-file test/coverage.info
+	lcov --remove test/coverage.info '/usr/*' '/opt/*' '/tmp/*' 'test_*' --output-file test/coverage_filtered.info
+	genhtml test/coverage_filtered.info --output-directory test/lcov_report --title "BrickGame Libraries Coverage Report"
+	@echo "=== LCOV report generated in test/lcov_report/index.html ==="
+
+# Очистка библиотек для пересборки с покрытием
+clean_libs:
+	@echo "=== Cleaning libraries for coverage build ==="
+	rm -f $(LIBSNAKE) $(LIBTETRIS)
+	rm -f src/brickgame/snake/*.gcno src/brickgame/snake/*.gcda
+	rm -f src/brickgame/tetris/*.gcno src/brickgame/tetris/*.gcda
+	rm -f test/*.gcno test/*.gcda
+
+.PHONY: all clean install uninstall dist snake_qt test_snake test_tetris test coverage lcov clean_libs
 

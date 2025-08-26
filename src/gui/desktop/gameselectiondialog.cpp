@@ -10,7 +10,6 @@ GameSelectionDialog::GameSelectionDialog(QWidget* parent)
       m_titleLabel(new QLabel("Select a Game", this)) {
   setupUI();
 
-  // Подключение сигналов
   connect(m_tetrisButton, &QPushButton::clicked, this,
           &GameSelectionDialog::onTetrisSelected);
   connect(m_snakeButton, &QPushButton::clicked, this,
@@ -20,7 +19,7 @@ GameSelectionDialog::GameSelectionDialog(QWidget* parent)
 GameSelectionDialog::~GameSelectionDialog() {}
 
 void GameSelectionDialog::closeEvent(QCloseEvent* event) {
-  // При закрытии через крестик устанавливаем результат как Rejected
+  emit dialogRejected();
   reject();
   event->accept();
 }
@@ -38,7 +37,6 @@ void GameSelectionDialog::setupUI() {
   mainLayout->setSpacing(20);
   mainLayout->setContentsMargins(20, 20, 20, 20);
 
-  // Заголовок
   m_titleLabel->setAlignment(Qt::AlignCenter);
   m_titleLabel->setStyleSheet(
       "QLabel { "
@@ -48,11 +46,9 @@ void GameSelectionDialog::setupUI() {
       "}");
   mainLayout->addWidget(m_titleLabel);
 
-  // Кнопки
   QHBoxLayout* buttonLayout = new QHBoxLayout();
   buttonLayout->setSpacing(20);
 
-  // Единый стиль для кнопок
   QString buttonStyle =
       "QPushButton { "
       "    background-color: #27ae60; "

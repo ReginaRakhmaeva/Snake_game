@@ -7,10 +7,8 @@
 
 namespace s21 {
 
-// Константы для типов клеток
 enum class CellType { Empty = 0, Snake = 1, Apple = 2 };
 
-// Константа для максимальной длины змейки
 constexpr int kMaxSnakeLength = 200;
 
 SnakeGame::SnakeGame() : gen_(std::random_device{}()) {
@@ -27,6 +25,8 @@ void SnakeGame::Reset() {
   level_ = 1;
   speed_ = 600;
   accelerated_ = false;
+  consecutive_moves_ = 0;
+  last_direction_ = SnakeDirection::Right;
 
   ClearField();
 }
@@ -52,7 +52,6 @@ void SnakeGame::InitializeSnake() {
 
 void SnakeGame::Update() {
   if (state_ == SnakeGameState::Ready) {
-    // При первом обновлении инициализируем змейку
     InitializeSnake();
     PlaceApple();
     state_ = SnakeGameState::Running;
@@ -64,13 +63,21 @@ void SnakeGame::Update() {
   direction_ = next_direction_;
   Move();
 
-  speed_ = 600 - (level_ - 1) * 40;
+  // Базовая скорость зависит от уровня
+  int baseSpeed = 600 - (level_ - 1) * 40;
+  
+  // Ускорение уменьшает интервал (увеличивает скорость)
+  if (accelerated_) {
+    speed_ = baseSpeed / 2;  // В 2 раза быстрее
+  } else {
+    speed_ = baseSpeed;
+  }
 }
 
 void SnakeGame::ChangeDirection(UserAction_t action) {
   if (state_ != SnakeGameState::Running) return;
 
-  SnakeDirection new_direction = direction_;  // по умолчанию не меняем
+  SnakeDirection new_direction = direction_;  
 
   switch (action) {
     case Up:
@@ -86,11 +93,21 @@ void SnakeGame::ChangeDirection(UserAction_t action) {
       new_direction = SnakeDirection::Right;
       break;
     default:
-      return;  // игнорируем другие действия
+      return;  
   }
 
-  // Проверяем, что новое направление не противоположно текущему
   if (!IsOppositeDirection(new_direction)) {
+    if (new_direction != last_direction_) {
+      consecutive_moves_ = 0;
+      accelerated_ = false;
+    } else {
+      consecutive_moves_++;
+      if (consecutive_moves_ >= 3) {
+        accelerated_ = true;
+      }
+    }
+    
+    last_direction_ = new_direction;
     next_direction_ = new_direction;
   }
 }
@@ -123,7 +140,6 @@ void SnakeGame::Move() {
     return;
   }
 
-  // Проверка яблока
   bool grow = (head.x == apple_x_ && head.y == apple_y_);
   snake_.push_front(head);
   field_[head.y][head.x] = static_cast<int>(CellType::Snake);
@@ -171,7 +187,6 @@ void SnakeGame::UpdateHighScore() {
 GameInfo_t SnakeGame::GetGameInfo() const {
   GameInfo_t info{};
 
-  // Выделяем память под поле
   info.field = new int*[kGameHeight];
   for (int y = 0; y < kGameHeight; ++y) {
     info.field[y] = new int[kGameWidth];
@@ -185,7 +200,7 @@ GameInfo_t SnakeGame::GetGameInfo() const {
   info.level = level_;
   info.speed = speed_;
   info.pause = (state_ == SnakeGameState::Paused) ? 1 : 0;
-  info.next = nullptr;  // У змейки нет next-фигуры, явно указать
+  info.next = nullptr;  
 
   return info;
 }
@@ -216,7 +231,7 @@ SnakeGameState SnakeGame::GetState() const { return state_; }
 void SnakeGame::Resume() {
   if (state_ == SnakeGameState::Paused || state_ == SnakeGameState::Ready) {
     if (state_ == SnakeGameState::Ready) {
-      Update();  // инициализация змейки и яблока
+      Update(); 
     }
     state_ = SnakeGameState::Running;
   }
@@ -228,11 +243,16 @@ void SnakeGame::Pause() {
 
 void SnakeGame::Terminate() { state_ = SnakeGameState::Lost; }
 
-void SnakeGame::Accelerate(bool enable) { accelerated_ = enable; }
+void SnakeGame::Accelerate(bool enable) { 
+  if (!enable) {
+    accelerated_ = false;
+    consecutive_moves_ = 0;
+  }
+}
 
 void SnakeGame::Tick() {
   if (state_ == SnakeGameState::Running) {
-    Update();  // Просто вызываем обновление
+    Update();  
   }
 }
 

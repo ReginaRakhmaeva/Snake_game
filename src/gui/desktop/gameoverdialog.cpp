@@ -9,7 +9,6 @@ GameOverDialog::GameOverDialog(bool isWon, QWidget* parent)
       m_messageLabel(new QLabel(this)) {
   setupUI(isWon);
 
-  // Подключение сигналов
   connect(m_restartButton, &QPushButton::clicked, this,
           &GameOverDialog::onRestartClicked);
   connect(m_quitButton, &QPushButton::clicked, this,
@@ -31,7 +30,6 @@ void GameOverDialog::setupUI(bool isWon) {
   mainLayout->setSpacing(20);
   mainLayout->setContentsMargins(20, 20, 20, 20);
 
-  // Сообщение
   QString message = isWon ? "Congratulations! You won!" : "Game Over!";
   m_messageLabel->setText(message);
   m_messageLabel->setAlignment(Qt::AlignCenter);
@@ -43,11 +41,9 @@ void GameOverDialog::setupUI(bool isWon) {
       "}");
   mainLayout->addWidget(m_messageLabel);
 
-  // Кнопки
   QHBoxLayout* buttonLayout = new QHBoxLayout();
   buttonLayout->setSpacing(20);
 
-  // Единый стиль для кнопок
   QString buttonStyle =
       "QPushButton { "
       "    background-color: #3498db; "
