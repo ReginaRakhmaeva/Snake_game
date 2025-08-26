@@ -44,4 +44,4 @@ void SnakeFSM::HandleInput(UserAction_t action, bool hold) {
   }
 }
 
-}  // namespace s21
+}

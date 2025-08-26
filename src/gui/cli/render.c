@@ -48,7 +48,6 @@ void render_game(const GameInfo_t *info) {
   clear();
   drawFieldBorders();
 
-  // Поле
   for (int y = 0; y < FIELD_HEIGHT; ++y) {
     for (int x = 0; x < FIELD_WIDTH; ++x) {
       mvprintw(FIELD_OFFSET_Y + y, FIELD_OFFSET_X + x * 2, "%s",
@@ -56,7 +55,6 @@ void render_game(const GameInfo_t *info) {
     }
   }
 
-  // Next фигура (только для тетриса)
   if (info->next) {
     mvprintw(1, 25, "Next:");
     for (int y = 0; y < 4; ++y) {
@@ -66,7 +64,6 @@ void render_game(const GameInfo_t *info) {
     }
   }
 
-  // Статистика
   mvprintw(8, 25, "Score: %d", info->score);
   mvprintw(9, 25, "High:  %d", info->high_score);
   mvprintw(10, 25, "Level: %d", info->level);
@@ -110,8 +107,6 @@ void renderGameWonScreen() {
 
 /**
  * @brief Отображает экран выбора игры и возвращает выбранную игру.
- *
- * @return GameType - выбранная игра
  */
 GameType render_game_selection() {
   clear();
@@ -133,8 +128,6 @@ GameType render_game_selection() {
 
 /**
  * @brief Отображает ошибку загрузки библиотеки.
- *
- * @param error - текст ошибки
  */
 void render_loading_error(const char *error) {
   clear();

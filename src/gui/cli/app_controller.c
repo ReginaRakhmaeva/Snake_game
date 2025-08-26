@@ -27,7 +27,6 @@ GameAPI load_game_lib(GameType game) {
   GameAPI api = {0};
   const char* lib_name = NULL;
 
-  // Определяем имя библиотеки с учетом ОС
 #ifdef __APPLE__
   const char* lib_extension = ".dylib";
 #else
@@ -49,21 +48,18 @@ GameAPI load_game_lib(GameType game) {
       return api;
   }
 
-  // Загружаем библиотеку
   api.lib_handle = dlopen(lib_name, RTLD_LAZY);
   if (!api.lib_handle) {
     api.error = strdup(dlerror());
     return api;
   }
 
-  // Загружаем функции API
   api.userInput =
       (void (*)(UserAction_t, bool))dlsym(api.lib_handle, "userInput");
   api.updateState =
       (GameInfo_t (*)(void))dlsym(api.lib_handle, "updateCurrentState");
   api.isOver = (bool (*)(void))dlsym(api.lib_handle, "isGameOver");
 
-  // Проверяем успешность загрузки функций
   if (!api.userInput || !api.updateState || !api.isOver) {
     dlclose(api.lib_handle);
     api.lib_handle = NULL;
@@ -116,7 +112,6 @@ static void game_loop(GameAPI api, GameType game_type) {
     bool hold = false;
     UserAction_t action = read_input(&hold, game_type);
 
-    // Обработка системных команд контроллера
     switch (action) {
       case Pause:
         paused = !paused;
@@ -126,16 +121,14 @@ static void game_loop(GameAPI api, GameType game_type) {
         break;
       case Terminate:
         running = false;
-        continue;  // Не передаем Terminate в игру
+        continue;
       default:
         break;
     }
 
-    // Передаем действие в игру
     api.userInput(action, hold);
     GameInfo_t info = api.updateState();
 
-    // Отрисовка в зависимости от состояния
     if (!started) {
       renderStartScreen();
     } else if (api.isOver()) {
@@ -159,10 +152,8 @@ static void game_loop(GameAPI api, GameType game_type) {
 void run_app(void) {
   init_ncurses();
 
-  // Выбор игры через интерфейс
   GameType selected_game = render_game_selection();
 
-  // Загрузка игровой библиотеки
   GameAPI api = load_game_lib(selected_game);
   if (!api.valid) {
     render_loading_error(api.error);
@@ -170,11 +161,9 @@ void run_app(void) {
     unload_game_lib(api);
     return;
   }
-
-  // Запуск игрового цикла
+  
   game_loop(api, selected_game);
 
-  // Очистка ресурсов
   endwin();
   unload_game_lib(api);
 }

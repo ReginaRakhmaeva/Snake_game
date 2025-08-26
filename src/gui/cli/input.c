@@ -23,7 +23,7 @@ UserAction_t read_input(bool *hold, GameType game_type) {
     case 'q':
     case 'Q':
       return Terminate;
-    case 10:  // Enter
+    case 10:
     case KEY_ENTER:
       return Start;
     default:

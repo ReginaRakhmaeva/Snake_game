@@ -4,7 +4,6 @@
 #include <string.h>
 #include <time.h>
 
-// #include "../../../include/brickgame/tetris/fsm.h"
 
 #define FIELD_WIDTH 10
 #define FIELD_HEIGHT 20
@@ -121,14 +120,12 @@ GameInfo_t backend_init_game(void) {
   spawn_piece(&current_piece);
   spawn_piece(&next_piece);
 
-  // Правильно инициализируем указатели на field
   info.field = (int **)malloc(FIELD_HEIGHT * sizeof(int *));
   for (int i = 0; i < FIELD_HEIGHT; ++i) {
     info.field[i] = (int *)malloc(FIELD_WIDTH * sizeof(int));
     memcpy(info.field[i], field[i], FIELD_WIDTH * sizeof(int));
   }
 
-  // Правильно инициализируем указатели на next
   info.next = (int **)malloc(FIGURE_SIZE * sizeof(int *));
   for (int i = 0; i < FIGURE_SIZE; ++i) {
     info.next[i] = (int *)malloc(FIGURE_SIZE * sizeof(int));
@@ -251,7 +248,6 @@ BackendStatus backend_handle_input(UserAction_t action, bool hold) {
 void backend_overlay_piece(GameInfo_t *info_ptr) {
   static int temp_field[FIELD_HEIGHT][FIELD_WIDTH];
 
-  // Проверяем валидность указателя
   if (!info_ptr || !info_ptr->field) {
     return;
   }
@@ -274,7 +270,6 @@ void backend_overlay_piece(GameInfo_t *info_ptr) {
     }
   }
 
-  // Копируем данные в выделенную память с проверкой
   for (int i = 0; i < FIELD_HEIGHT; ++i) {
     if (info_ptr->field[i]) {
       memcpy(info_ptr->field[i], temp_field[i], FIELD_WIDTH * sizeof(int));
@@ -305,46 +300,10 @@ BackendStatus backend_fix_piece(void) {
   }
   return BACKEND_OK;
 }
-// BackendStatus backend_fix_piece(void) {
-//   // Проверка: если хотя бы один блок фигуры выйдет выше поля — конец игры
-//   for (int y = 0; y < FIGURE_SIZE; ++y) {
-//     for (int x = 0; x < FIGURE_SIZE; ++x) {
-//       if (current_piece.shape[y][x]) {
-//         int fy = current_piece.y + y;
-//         if (fy < 0) {
-//           return BACKEND_GAME_OVER;
-//         }
-//       }
-//     }
-//   }
 
-//   // Фиксируем фигуру
-//   for (int y = 0; y < FIGURE_SIZE; ++y) {
-//     for (int x = 0; x < FIGURE_SIZE; ++x) {
-//       if (current_piece.shape[y][x]) {
-//         int fx = current_piece.x + x;
-//         int fy = current_piece.y + y;
-//         if (fy >= 0 && fy < FIELD_HEIGHT && fx >= 0 && fx < FIELD_WIDTH) {
-//           field[fy][fx] = 1;
-//         }
-//       }
-//     }
-//   }
-
-//   clear_lines();
-
-//   current_piece = next_piece;
-//   spawn_piece(&next_piece);
-
-//   if (check_spawn_failure()) {
-//     return BACKEND_GAME_OVER;
-//   }
-
-//   return BACKEND_OK;
-// }
 
 GameInfo_t backend_get_info(void) { 
-  // Обновляем информацию о следующей фигуре
+
   for (int i = 0; i < FIGURE_SIZE; ++i) {
     if (info.next[i]) {
       memcpy(info.next[i], next_piece.shape[i], FIGURE_SIZE * sizeof(int));

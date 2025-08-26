@@ -1,6 +1,6 @@
 #include "../../../include/brickgame/tetris/fsm.h"
 
-#include "../../../include/brickgame/common/types.h"  // Для UserAction_t
+#include "../../../include/brickgame/common/types.h" 
 
 static GameState_t current_state = STATE_INIT;
 

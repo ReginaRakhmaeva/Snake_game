@@ -63,12 +63,10 @@ void SnakeGame::Update() {
   direction_ = next_direction_;
   Move();
 
-  // Базовая скорость зависит от уровня
   int baseSpeed = 600 - (level_ - 1) * 40;
   
-  // Ускорение уменьшает интервал (увеличивает скорость)
   if (accelerated_) {
-    speed_ = baseSpeed / 2;  // В 2 раза быстрее
+    speed_ = baseSpeed / 2;
   } else {
     speed_ = baseSpeed;
   }

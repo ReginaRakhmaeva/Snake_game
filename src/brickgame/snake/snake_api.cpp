@@ -7,7 +7,7 @@ namespace s21 {
 static SnakeGame game;
 static SnakeFSM fsm(game);
 
-}  // namespace s21
+}
 static GameInfo_t previous_info;
 
 extern "C" EXPORT void userInput(UserAction_t action, bool hold) {

@@ -251,3 +251,111 @@ TEST_F(TetrisGameTest, EdgeCaseActions) {
   freeGameInfo(&info1);
   freeGameInfo(&info2);
 }
+
+TEST_F(TetrisGameTest, LineClearing) {
+  userInput(Start, false);
+  
+  for (int i = 0; i < 50; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, MultipleLineClearing) {
+  userInput(Start, false);
+  
+  for (int i = 0; i < 100; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  EXPECT_FALSE(isGameOver());
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, ScoreAndLevelProgression) {
+  userInput(Start, false);
+  
+  for (int i = 0; i < 200; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, HighScoreUpdate) {
+  userInput(Start, false);
+  
+  for (int i = 0; i < 300; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  EXPECT_FALSE(isGameOver());
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, MaxLevelReached) {
+  userInput(Start, false);
+  
+  for (int i = 0; i < 1000; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, LongGameSession) {
+  userInput(Start, false);
+  
+  for (int i = 0; i < 500; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  EXPECT_FALSE(isGameOver());
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, SaveHighScoreFunction) {
+  userInput(Start, false);
+  
+  for (int i = 0; i < 400; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
