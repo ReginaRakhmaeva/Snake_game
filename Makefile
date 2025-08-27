@@ -61,7 +61,6 @@ brickgame_desktop: $(LIBTETRIS) $(LIBSNAKE)
 	@echo "=== Building Qt frontend ==="
 	@mkdir -p build_qt
 	cd build_qt && cmake "$$(pwd)/.." && make
-	@cp build_qt/brickgame_desktop . || true
 
 # === Каталог установки ===
 PREFIX = /usr/local
