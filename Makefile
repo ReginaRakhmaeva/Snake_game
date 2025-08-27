@@ -163,7 +163,6 @@ clean:
 	
 	@echo "=== Clean completed ==="
 
-# Удаляем дублированную цель dist - она определена ниже
 
 # === Тесты ===
 TEST_SNAKE_SRC = test/test_snake/test_snake_game.cpp \
