@@ -1,3 +1,11 @@
+/**
+ * @file backend.c
+ * @brief Основная логика игры Tetris.
+ *
+ * Этот файл содержит реализацию основной игровой логики Tetris,
+ * включая управление фигурами, поле игры, подсчет очков и уровней.
+ */
+
 #include "../../../include/brickgame/tetris/backend.h"
 
 #include <stdlib.h>
@@ -28,6 +36,11 @@ static Tetromino current_piece;
 static Tetromino next_piece;
 static GameInfo_t info;
 
+/**
+ * @brief Поворачивает фигуру по часовой стрелке.
+ * @param src Исходная фигура для поворота
+ * @param dst Результирующая повернутая фигура
+ */
 static void rotate_clockwise(int src[FIGURE_SIZE][FIGURE_SIZE],
                              int dst[FIGURE_SIZE][FIGURE_SIZE]) {
   for (int y = 0; y < FIGURE_SIZE; ++y) {
@@ -37,6 +50,10 @@ static void rotate_clockwise(int src[FIGURE_SIZE][FIGURE_SIZE],
   }
 }
 
+/**
+ * @brief Создает новую случайную фигуру.
+ * @param dst Указатель на структуру для новой фигуры
+ */
 static void spawn_piece(Tetromino *dst) {
   int id = rand() % 7;
   memcpy(dst->shape, FIGURES[id], sizeof(dst->shape));
@@ -44,6 +61,9 @@ static void spawn_piece(Tetromino *dst) {
   dst->y = -2;
 }
 
+/**
+ * @brief Очищает заполненные линии и обновляет счет.
+ */
 static void clear_lines() {
   int lines_cleared = 0;
   for (int y = FIELD_HEIGHT - 1; y >= 0; --y) {
@@ -94,6 +114,11 @@ static void clear_lines() {
     info.speed = get_level_speed(info.level);
   }
 }
+
+/**
+ * @brief Сохраняет рекордный счет в файл.
+ * @param high_score Рекордный счет для сохранения
+ */
 void save_high_score(int high_score) {
   FILE *file = fopen("tetris_highscore.txt", "w");
   if (file) {
@@ -101,6 +126,10 @@ void save_high_score(int high_score) {
     fclose(file);
   }
 }
+/**
+ * @brief Загружает рекордный счет из файла.
+ * @return Загруженный рекордный счет или 0 если файл не найден
+ */
 static int load_high_score() {
   FILE *file = fopen(SCORE_FILE, "r");
   int high_score = 0;
@@ -111,6 +140,10 @@ static int load_high_score() {
   return high_score;
 }
 
+/**
+ * @brief Инициализирует игру Tetris.
+ * @return Структура GameInfo_t с начальным состоянием игры
+ */
 GameInfo_t backend_init_game(void) {
   for (int y = 0; y < FIELD_HEIGHT; ++y) {
     for (int x = 0; x < FIELD_WIDTH; ++x) {
@@ -141,6 +174,12 @@ GameInfo_t backend_init_game(void) {
   return info;
 }
 
+/**
+ * @brief Проверяет коллизию фигуры с полем или границами.
+ * @param dx Смещение по X
+ * @param dy Смещение по Y
+ * @return 1 если есть коллизия, 0 если нет
+ */
 static int check_collision(int dx, int dy) {
   for (int y = 0; y < FIGURE_SIZE; ++y) {
     for (int x = 0; x < FIGURE_SIZE; ++x) {
@@ -155,6 +194,10 @@ static int check_collision(int dx, int dy) {
   }
   return 0;
 }
+/**
+ * @brief Проверяет возможность появления новой фигуры.
+ * @return 1 если появление невозможно (игра окончена), 0 если возможно
+ */
 static int check_spawn_failure() {
   for (int y = 0; y < FIGURE_SIZE; ++y) {
     for (int x = 0; x < FIGURE_SIZE; ++x) {
@@ -168,6 +211,11 @@ static int check_spawn_failure() {
   return 0;
 }
 
+/**
+ * @brief Обновляет физику игры (падение фигуры).
+ * @param info_ptr Указатель на структуру игровой информации
+ * @return Статус обновления (OK или GAME_OVER)
+ */
 BackendStatus backend_update_physics(GameInfo_t *info_ptr) {
   (void)info_ptr;
   if (!check_collision(0, 1)) {
@@ -179,6 +227,10 @@ BackendStatus backend_update_physics(GameInfo_t *info_ptr) {
   }
 }
 
+/**
+ * @brief Пытается повернуть текущую фигуру с проверкой коллизий.
+ * @return 1 если поворот успешен, 0 если невозможно
+ */
 static int try_rotate() {
   int rotated[FIGURE_SIZE][FIGURE_SIZE];
   rotate_clockwise(current_piece.shape, rotated);
@@ -218,6 +270,12 @@ static int try_rotate() {
   return 0;
 }
 
+/**
+ * @brief Обрабатывает пользовательский ввод для управления фигурой.
+ * @param action Действие пользователя
+ * @param hold Флаг удержания клавиши
+ * @return Статус обработки ввода
+ */
 BackendStatus backend_handle_input(UserAction_t action, bool hold) {
   switch (action) {
     case Left:
@@ -245,6 +303,10 @@ BackendStatus backend_handle_input(UserAction_t action, bool hold) {
   return BACKEND_OK;
 }
 
+/**
+ * @brief Накладывает текущую фигуру на поле для отображения.
+ * @param info_ptr Указатель на структуру игровой информации
+ */
 void backend_overlay_piece(GameInfo_t *info_ptr) {
   static int temp_field[FIELD_HEIGHT][FIELD_WIDTH];
 
@@ -277,6 +339,10 @@ void backend_overlay_piece(GameInfo_t *info_ptr) {
   }
 }
 
+/**
+ * @brief Фиксирует текущую фигуру на поле и создает новую.
+ * @return Статус операции (OK или GAME_OVER)
+ */
 BackendStatus backend_fix_piece(void) {
   for (int y = 0; y < FIGURE_SIZE; ++y) {
     for (int x = 0; x < FIGURE_SIZE; ++x) {
@@ -302,6 +368,10 @@ BackendStatus backend_fix_piece(void) {
 }
 
 
+/**
+ * @brief Возвращает текущую информацию об игре.
+ * @return Структура GameInfo_t с актуальным состоянием игры
+ */
 GameInfo_t backend_get_info(void) { 
 
   for (int i = 0; i < FIGURE_SIZE; ++i) {
@@ -312,6 +382,10 @@ GameInfo_t backend_get_info(void) {
   return info; 
 }
 
+/**
+ * @brief Освобождает память, выделенную для игровой информации.
+ * @param game_info Указатель на структуру игровой информации
+ */
 void backend_free_game_info(GameInfo_t *game_info) {
   if (game_info->field) {
     for (int i = 0; i < FIELD_HEIGHT; ++i) {
@@ -334,6 +408,11 @@ void backend_free_game_info(GameInfo_t *game_info) {
   }
 }
 
+/**
+ * @brief Возвращает скорость игры для заданного уровня.
+ * @param level Уровень игры
+ * @return Скорость в миллисекундах
+ */
 int get_level_speed(int level) {
   int speed = 600 - (level - 1) * 60;
   if (speed < 80) speed = 80;

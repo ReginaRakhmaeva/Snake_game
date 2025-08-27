@@ -1,3 +1,20 @@
+/**
+ * @file gameselectiondialog.cpp
+ * @brief Реализация диалога выбора игры для Desktop GUI.
+ *
+ * В этом файле реализованы методы GameSelectionDialog:
+ *  - Конструктор: создаёт кнопки, заголовок и подключает сигналы к слотам.
+ *  - Деструктор: освобождает ресурсы виджетов.
+ *  - setupUI(): настраивает виджет диалога, размеры, стили кнопок и меток.
+ *  - closeEvent(): обрабатывает закрытие окна и генерирует сигнал
+ * dialogRejected().
+ *  - Слоты onTetrisSelected и onSnakeSelected: испускают сигнал gameSelected()
+ * и закрывают диалог.
+ *
+ * Данный файл тесно связан с QDialog и QWidgets и используется в Desktop GUI
+ * версии игры для выбора режима игры перед стартом.
+ */
+
 #include "../../../include/gui/desktop/gameselectiondialog.h"
 
 #include <QApplication>

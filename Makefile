@@ -114,6 +114,8 @@ clean:
 	rm -f debug*.log debug*.txt
 	rm -f *.log
 	rm -f snake_highscore.txt tetris_highscore.txt
+	rm -f cppcheck-report.xml
+	rm -f valgrind-out.txt
 	
 	# Удаляем директории сборки (но сохраняем CMakeLists.txt)
 	rm -rf $(QT_BUILD_DIR)
@@ -162,9 +164,7 @@ clean:
 	
 	@echo "=== Clean completed ==="
 
-dist: clean
-	@echo "Creating distribution archive..."
-	tar -czf brickgame-$(shell date +%Y%m%d).tar.gz *
+# Удаляем дублированную цель dist - она определена ниже
 
 # === Тесты ===
 TEST_SNAKE_SRC = test/test_snake/test_snake_game.cpp \
@@ -315,5 +315,47 @@ dist: clean
 		. ; \
 	echo "Distribution archive created: dist/brickgame-$$VERSION.tar.gz"
 
-.PHONY: all clean install uninstall dvi dist snake_qt test_snake test_tetris test coverage lcov clean_libs
+# === Проверка утечек памяти ===
+valgrind_snake: clean $(LIBSNAKE) $(TEST_SNAKE_SRC)
+	@echo "=== Checking Snake library for memory leaks ==="
+	$(CXX) $(CXXFLAGS) -o $(TEST_SNAKE_BIN) $(TEST_SNAKE_SRC) -L. -lsnake -lgtest -lgtest_main -lpthread
+	@if command -v valgrind >/dev/null 2>&1; then \
+		LD_LIBRARY_PATH=. valgrind -s --leak-check=full --track-origins=yes --show-reachable=yes --error-exitcode=1 \
+		--suppressions=valgrind.supp ./$(TEST_SNAKE_BIN); \
+	else \
+		echo "Valgrind not found. Please install valgrind to check for memory leaks."; \
+		LD_LIBRARY_PATH=. ./$(TEST_SNAKE_BIN); \
+	fi
+
+valgrind_tetris: clean $(LIBTETRIS) $(TEST_TETRIS_SRC)
+	@echo "=== Checking Tetris library for memory leaks ==="
+	$(CXX) $(CXXFLAGS) -o $(TEST_TETRIS_BIN) $(TEST_TETRIS_SRC) -L. -ltetris -lgtest -lgtest_main -lpthread
+	@if command -v valgrind >/dev/null 2>&1; then \
+		LD_LIBRARY_PATH=. valgrind -s --leak-check=full --track-origins=yes --show-reachable=yes --error-exitcode=1 \
+		--suppressions=valgrind.supp ./$(TEST_TETRIS_BIN); \
+	else \
+		echo "Valgrind not found. Please install valgrind to check for memory leaks."; \
+		LD_LIBRARY_PATH=. ./$(TEST_TETRIS_BIN); \
+	fi
+
+# Проверка утечек для всех компонентов
+valgrind: valgrind_snake valgrind_tetris
+	@echo "=== All memory leak checks completed ==="
+
+# === Статический анализ кода ===
+# Проверка с помощью cppcheck
+cppcheck:
+	@echo "=== Running static analysis with cppcheck ==="
+	@if command -v cppcheck >/dev/null 2>&1; then \
+		echo "Checking C files..."; \
+		cppcheck --enable=all --std=c11 --language=c --suppress=missingIncludeSystem \
+		src/brickgame/tetris/*.c src/gui/cli/*.c; \
+		echo "Checking C++ files..."; \
+		cppcheck --enable=all --std=c++20 --language=c++ --suppress=missingIncludeSystem \
+		src/brickgame/snake/*.cpp include/; \
+	else \
+		echo "Cppcheck not found. Please install cppcheck to run static analysis."; \
+	fi
+
+.PHONY: all clean install uninstall dvi dist snake_qt test_snake test_tetris test coverage lcov clean_libs valgrind_snake valgrind_tetris valgrind cppcheck 
 

@@ -1,9 +1,24 @@
-// fsm.h - Конечный автомат для Tetris
+/**
+ * @file fsm.h
+ * @brief Конечный автомат (FSM) для управления состояниями игры Tetris.
+ *
+ * Модуль отвечает за переходы между основными состояниями игры:
+ * - STATE_INIT — начальное состояние (ожидание старта);
+ * - STATE_RUNNING — активная игра;
+ * - STATE_PAUSED — игра на паузе;
+ * - STATE_GAME_OVER — завершение игры.
+ *
+ * FSM обрабатывает пользовательский ввод (Start, Pause, Terminate)
+ * и управляет логикой переходов между состояниями.
+ */
 #ifndef BRICKGAME_TETRIS_FSM_H_
 #define BRICKGAME_TETRIS_FSM_H_
 
 #include "../../../include/brickgame/common/types.h"  // Для UserAction_t
 
+/**
+ * @brief Возможные состояния игры.
+ */
 typedef enum {
   STATE_INIT,
   STATE_RUNNING,
@@ -11,13 +26,25 @@ typedef enum {
   STATE_GAME_OVER
 } GameState_t;
 
-// Получить текущее состояние
+/**
+ * @brief Возвращает текущее состояние FSM.
+ *
+ * @return GameState_t текущее состояние автомата.
+ */
 GameState_t fsm_get_state(void);
 
-// Обновить состояние автомата на основе действия пользователя
+/**
+ * @brief Обновляет состояние FSM на основе пользовательского ввода.
+ *
+ * @param action действие игрока (Start, Pause, Terminate).
+ */
 void fsm_process_input(UserAction_t action);
 
-// Принудительно установить состояние
+/**
+ * @brief Принудительно устанавливает состояние FSM.
+ *
+ * @param state новое состояние.
+ */
 void fsm_set_state(GameState_t state);
 
-#endif  // BRICKGAME_TETRIS_FSM_H_ 
+#endif  // BRICKGAME_TETRIS_FSM_H_

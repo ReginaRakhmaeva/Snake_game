@@ -1,3 +1,12 @@
+/**
+ * @file gameoverdialog.cpp
+ * @brief Реализация диалогового окна окончания игры.
+ *
+ * Настраивает GUI с помощью QLabel для сообщения и QPushButton для управления.
+ * Обрабатывает сигналы нажатий кнопок и генерирует соответствующие сигналы
+ * для контроллера игры (restartRequested, quitRequested).
+ */
+
 #include "../../../include/gui/desktop/gameoverdialog.h"
 
 #include <QApplication>

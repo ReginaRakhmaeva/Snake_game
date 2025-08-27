@@ -1,3 +1,14 @@
+/**
+ * @file snake_game.cpp
+ * @brief Реализация основной логики игры Snake.
+ *
+ * Этот модуль содержит:
+ * - управление состоянием игры (SnakeGameState);
+ * - обновление поля и змейки;
+ * - генерацию яблок;
+ * - обработку столкновений и победы/поражения;
+ * - сохранение и загрузку рекорда.
+ */
 #include "../../../include/brickgame/snake/snake_game.hpp"
 
 #include <algorithm>
@@ -6,16 +17,26 @@
 #include <string>
 
 namespace s21 {
-
+/**
+ * @brief Тип клетки игрового поля.
+ */
 enum class CellType { Empty = 0, Snake = 1, Apple = 2 };
 
 constexpr int kMaxSnakeLength = 200;
 
+/**
+ * @brief Конструктор SnakeGame.
+ *
+ * Загружает сохранённый рекорд и инициализирует состояние игры.
+ */
 SnakeGame::SnakeGame() : gen_(std::random_device{}()) {
   high_score_ = LoadHighScore();
   Reset();
 }
 
+/**
+ * @brief Полная перезагрузка игры (сброс счёта, уровня, змейки и поля).
+ */
 void SnakeGame::Reset() {
   state_ = SnakeGameState::Ready;
   direction_ = SnakeDirection::Right;
@@ -30,7 +51,9 @@ void SnakeGame::Reset() {
 
   ClearField();
 }
-
+/**
+ * @brief Очистка игрового поля (все клетки → пустые).
+ */
 void SnakeGame::ClearField() {
   for (int y = 0; y < kGameHeight; ++y) {
     for (int x = 0; x < kGameWidth; ++x) {
@@ -38,7 +61,9 @@ void SnakeGame::ClearField() {
     }
   }
 }
-
+/**
+ * @brief Размещение змейки в начальном положении.
+ */
 void SnakeGame::InitializeSnake() {
   snake_.clear();
   int start_x = 0;
@@ -49,7 +74,9 @@ void SnakeGame::InitializeSnake() {
     field_[start_y][start_x + i] = static_cast<int>(CellType::Snake);
   }
 }
-
+/**
+ * @brief Основное обновление логики (ход змейки, генерация яблок, ускорение).
+ */
 void SnakeGame::Update() {
   if (state_ == SnakeGameState::Ready) {
     InitializeSnake();
@@ -64,18 +91,20 @@ void SnakeGame::Update() {
   Move();
 
   int baseSpeed = 600 - (level_ - 1) * 40;
-  
+
   if (accelerated_) {
     speed_ = baseSpeed / 2;
   } else {
     speed_ = baseSpeed;
   }
 }
-
+/**
+ * @brief Изменить направление движения змейки (с проверкой на валидность).
+ */
 void SnakeGame::ChangeDirection(UserAction_t action) {
   if (state_ != SnakeGameState::Running) return;
 
-  SnakeDirection new_direction = direction_;  
+  SnakeDirection new_direction = direction_;
 
   switch (action) {
     case Up:
@@ -91,7 +120,7 @@ void SnakeGame::ChangeDirection(UserAction_t action) {
       new_direction = SnakeDirection::Right;
       break;
     default:
-      return;  
+      return;
   }
 
   if (!IsOppositeDirection(new_direction)) {
@@ -104,12 +133,16 @@ void SnakeGame::ChangeDirection(UserAction_t action) {
         accelerated_ = true;
       }
     }
-    
+
     last_direction_ = new_direction;
     next_direction_ = new_direction;
   }
 }
-
+/**
+ * @brief Передвигает змейку на один шаг.
+ *
+ * Проверяет столкновения, поедание яблок, рост змейки и победу.
+ */
 void SnakeGame::Move() {
   if (snake_.empty()) return;
 
@@ -159,7 +192,9 @@ void SnakeGame::Move() {
     snake_.pop_back();
   }
 }
-
+/**
+ * @brief Разместить яблоко в случайной пустой клетке.
+ */
 void SnakeGame::PlaceApple() {
   std::uniform_int_distribution<int> dist_x(0, kGameWidth - 1);
   std::uniform_int_distribution<int> dist_y(0, kGameHeight - 1);
@@ -175,13 +210,20 @@ void SnakeGame::PlaceApple() {
   field_[y][x] = static_cast<int>(CellType::Apple);
 }
 
+/**
+ * @brief Обновить и сохранить рекорд, если текущий счёт выше.
+ */
 void SnakeGame::UpdateHighScore() {
   if (score_ > high_score_) {
     high_score_ = score_;
     SaveHighScore();
   }
 }
-
+/**
+ * @brief Получить текущее состояние игры в формате GameInfo_t.
+ *
+ * Память для поля выделяется динамически. Освобождение через FreeGameInfo().
+ */
 GameInfo_t SnakeGame::GetGameInfo() const {
   GameInfo_t info{};
 
@@ -198,11 +240,14 @@ GameInfo_t SnakeGame::GetGameInfo() const {
   info.level = level_;
   info.speed = speed_;
   info.pause = (state_ == SnakeGameState::Paused) ? 1 : 0;
-  info.next = nullptr;  
+  info.next = nullptr;
 
   return info;
 }
 
+/**
+ * @brief Освобождает память, выделенную для GameInfo_t::field.
+ */
 void SnakeGame::FreeGameInfo(GameInfo_t& info) const {
   if (info.field) {
     for (int y = 0; y < kGameHeight; ++y) {
@@ -212,48 +257,76 @@ void SnakeGame::FreeGameInfo(GameInfo_t& info) const {
     info.field = nullptr;
   }
 }
-
+/**
+ * \brief Проверяет, занята ли ячейка змейкой.
+ * \param x Координата X.
+ * \param y Координата Y.
+ * \return true, если в ячейке находится часть змейки.
+ */
 bool SnakeGame::CheckCollision(int x, int y) const {
   return field_[y][x] == static_cast<int>(CellType::Snake);
 }
-
+/**
+ * \brief Проверяет, является ли новое направление противоположным текущему.
+ * \param dir Новое направление.
+ * \return true, если направление противоположно текущему.
+ */
 bool SnakeGame::IsOppositeDirection(SnakeDirection dir) const {
   return (direction_ == SnakeDirection::Up && dir == SnakeDirection::Down) ||
          (direction_ == SnakeDirection::Down && dir == SnakeDirection::Up) ||
          (direction_ == SnakeDirection::Left && dir == SnakeDirection::Right) ||
          (direction_ == SnakeDirection::Right && dir == SnakeDirection::Left);
 }
-
+/**
+ * \brief Получает текущее состояние игры.
+ * \return Состояние игры (Ready, Running, Paused, Won, Lost).
+ */
 SnakeGameState SnakeGame::GetState() const { return state_; }
-
+/**
+ * \brief Возобновляет игру после паузы или из состояния Ready.
+ * Если состояние Ready, то выполняет первый Update().
+ */
 void SnakeGame::Resume() {
   if (state_ == SnakeGameState::Paused || state_ == SnakeGameState::Ready) {
     if (state_ == SnakeGameState::Ready) {
-      Update(); 
+      Update();
     }
     state_ = SnakeGameState::Running;
   }
 }
-
+/**
+ * \brief Ставит игру на паузу.
+ */
 void SnakeGame::Pause() {
   if (state_ == SnakeGameState::Running) state_ = SnakeGameState::Paused;
 }
-
+/**
+ * \brief Принудительно завершает игру (состояние Lost).
+ */
 void SnakeGame::Terminate() { state_ = SnakeGameState::Lost; }
-
-void SnakeGame::Accelerate(bool enable) { 
+/**
+ * \brief Управляет ускорением змейки.
+ * \param enable true — включить ускорение, false — выключить.
+ */
+void SnakeGame::Accelerate(bool enable) {
   if (!enable) {
     accelerated_ = false;
     consecutive_moves_ = 0;
   }
 }
-
+/**
+ * \brief Обрабатывает один игровой тик.
+ * Если игра в состоянии Running — выполняет Update().
+ */
 void SnakeGame::Tick() {
   if (state_ == SnakeGameState::Running) {
-    Update();  
+    Update();
   }
 }
-
+/**
+ * \brief Загружает рекорд из файла snake_highscore.txt.
+ * \return Сохранённый high score или 0, если файла нет.
+ */
 int SnakeGame::LoadHighScore() {
   std::ifstream file("snake_highscore.txt");
   int hs = 0;
@@ -263,7 +336,9 @@ int SnakeGame::LoadHighScore() {
   }
   return hs;
 }
-
+/**
+ * \brief Сохраняет текущий рекорд в файл snake_highscore.txt.
+ */
 void SnakeGame::SaveHighScore() const {
   std::ofstream file("snake_highscore.txt");
   if (file.is_open()) {
