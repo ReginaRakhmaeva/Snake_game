@@ -18,6 +18,7 @@
 #include <QObject>
 #include <QTimer>
 #include <memory>
+#include <QSet>
 
 #include "../../brickgame/common/types.h"
 #include "libraryloader.h"
@@ -126,6 +127,12 @@ class GameController : public QObject {
   void handleKeyPress(int key);
 
   /**
+   * @brief Обрабатывает отпускание клавиши пользователем.
+   * @param key Код клавиши Qt.
+   */
+  void handleKeyRelease(int key);
+
+  /**
    * @brief Обрабатывает нажатие кнопки "Старт" в интерфейсе.
    */
   void handleStartButton();
@@ -184,6 +191,7 @@ class GameController : public QObject {
   QTimer* m_gameTimer;            /**< Таймер для игрового цикла */
   bool m_gameStarted; /**< Флаг состояния игры: запущена/не запущена */
   bool m_gamePaused;  /**< Флаг состояния игры: на паузе/не на паузе */
+  QSet<int> m_pressedKeys; /**< Множество нажатых клавиш для отслеживания удержания */
 };
 
 #endif  // GAMECONTROLLER_H

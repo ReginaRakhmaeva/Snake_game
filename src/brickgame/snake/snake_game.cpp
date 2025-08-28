@@ -30,128 +30,6 @@ SnakeGame::SnakeGame() : gen_(std::random_device{}()) {
 }
 
 /**
- * @brief Конструктор копирования.
- */
-SnakeGame::SnakeGame(const SnakeGame& other) 
-    : snake_(other.snake_),
-      direction_(other.direction_),
-      next_direction_(other.next_direction_),
-      state_(other.state_),
-      length_(other.length_),
-      apple_x_(other.apple_x_),
-      apple_y_(other.apple_y_),
-      score_(other.score_),
-      high_score_(other.high_score_),
-      level_(other.level_),
-      speed_(other.speed_),
-      accelerated_(other.accelerated_),
-      consecutive_moves_(other.consecutive_moves_),
-      last_direction_(other.last_direction_),
-      gen_(other.gen_) {
-  // Копируем статический массив
-  for (int y = 0; y < kGameHeight; ++y) {
-    for (int x = 0; x < kGameWidth; ++x) {
-      field_[y][x] = other.field_[y][x];
-    }
-  }
-}
-
-/**
- * @brief Оператор присваивания копированием.
- */
-SnakeGame& SnakeGame::operator=(const SnakeGame& other) {
-  if (this != &other) {  // Защита от самоприсваивания
-    snake_ = other.snake_;
-    direction_ = other.direction_;
-    next_direction_ = other.next_direction_;
-    state_ = other.state_;
-    length_ = other.length_;
-    apple_x_ = other.apple_x_;
-    apple_y_ = other.apple_y_;
-    score_ = other.score_;
-    high_score_ = other.high_score_;
-    level_ = other.level_;
-    speed_ = other.speed_;
-    accelerated_ = other.accelerated_;
-    consecutive_moves_ = other.consecutive_moves_;
-    last_direction_ = other.last_direction_;
-    gen_ = other.gen_;
-    
-    // Копируем статический массив
-    for (int y = 0; y < kGameHeight; ++y) {
-      for (int x = 0; x < kGameWidth; ++x) {
-        field_[y][x] = other.field_[y][x];
-      }
-    }
-  }
-  return *this;
-}
-
-/**
- * @brief Конструктор перемещения.
- */
-SnakeGame::SnakeGame(SnakeGame&& other) noexcept
-    : snake_(std::move(other.snake_)),
-      direction_(other.direction_),
-      next_direction_(other.next_direction_),
-      state_(other.state_),
-      length_(other.length_),
-      apple_x_(other.apple_x_),
-      apple_y_(other.apple_y_),
-      score_(other.score_),
-      high_score_(other.high_score_),
-      level_(other.level_),
-      speed_(other.speed_),
-      accelerated_(other.accelerated_),
-      consecutive_moves_(other.consecutive_moves_),
-      last_direction_(other.last_direction_),
-      gen_(std::move(other.gen_)) {
-  // Перемещаем статический массив
-  for (int y = 0; y < kGameHeight; ++y) {
-    for (int x = 0; x < kGameWidth; ++x) {
-      field_[y][x] = other.field_[y][x];
-    }
-  }
-  
-  // Очищаем исходный объект
-  other.Reset();
-}
-
-/**
- * @brief Оператор присваивания перемещением.
- */
-SnakeGame& SnakeGame::operator=(SnakeGame&& other) noexcept {
-  if (this != &other) {  // Защита от самоприсваивания
-    snake_ = std::move(other.snake_);
-    direction_ = other.direction_;
-    next_direction_ = other.next_direction_;
-    state_ = other.state_;
-    length_ = other.length_;
-    apple_x_ = other.apple_x_;
-    apple_y_ = other.apple_y_;
-    score_ = other.score_;
-    high_score_ = other.high_score_;
-    level_ = other.level_;
-    speed_ = other.speed_;
-    accelerated_ = other.accelerated_;
-    consecutive_moves_ = other.consecutive_moves_;
-    last_direction_ = other.last_direction_;
-    gen_ = std::move(other.gen_);
-    
-    // Перемещаем статический массив
-    for (int y = 0; y < kGameHeight; ++y) {
-      for (int x = 0; x < kGameWidth; ++x) {
-        field_[y][x] = other.field_[y][x];
-      }
-    }
-    
-    // Очищаем исходный объект
-    other.Reset();
-  }
-  return *this;
-}
-
-/**
  * @brief Полная перезагрузка игры (сброс счёта, уровня, змейки и поля).
  */
 void SnakeGame::Reset() {
@@ -163,8 +41,6 @@ void SnakeGame::Reset() {
   level_ = 1;
   speed_ = 600;
   accelerated_ = false;
-  consecutive_moves_ = 0;
-  last_direction_ = SnakeDirection::Right;
 
   ClearField();
 }
@@ -218,7 +94,7 @@ void SnakeGame::Update() {
 /**
  * @brief Изменить направление движения змейки (с проверкой на валидность).
  */
-void SnakeGame::ChangeDirection(UserAction_t action) {
+void SnakeGame::ChangeDirection(UserAction_t action, bool hold) {
   if (state_ != SnakeGameState::Running) return;
 
   SnakeDirection new_direction = direction_;
@@ -241,18 +117,14 @@ void SnakeGame::ChangeDirection(UserAction_t action) {
   }
 
   if (!IsOppositeDirection(new_direction)) {
-    if (new_direction != last_direction_) {
-      consecutive_moves_ = 0;
-      accelerated_ = false;
-    } else {
-      consecutive_moves_++;
-      if (consecutive_moves_ >= 3) {
-        accelerated_ = true;
-      }
-    }
-
-    last_direction_ = new_direction;
     next_direction_ = new_direction;
+    
+    // 🎯 Управляем ускорением через hold
+    if (hold) {
+      accelerated_ = true;  // Включаем ускорение при удержании
+    } else {
+      accelerated_ = false; // Отключаем ускорение при отпускании
+    }
   }
 }
 /**
@@ -426,10 +298,9 @@ void SnakeGame::Terminate() { state_ = SnakeGameState::Lost; }
  * \param enable true — включить ускорение, false — выключить.
  */
 void SnakeGame::Accelerate(bool enable) {
-  if (!enable) {
-    accelerated_ = false;
-    consecutive_moves_ = 0;
-  }
+  // 🎯 Ускорение теперь управляется через ChangeDirection с параметром hold
+  // Этот метод оставлен для совместимости с Action клавишей
+  accelerated_ = enable;
 }
 /**
  * \brief Обрабатывает один игровой тик.
@@ -463,5 +334,119 @@ void SnakeGame::SaveHighScore() const {
     file.close();
   }
 }
+/**
+ * @brief Конструктор копирования.
+ */
+SnakeGame::SnakeGame(const SnakeGame& other) 
+    : snake_(other.snake_),
+      direction_(other.direction_),
+      next_direction_(other.next_direction_),
+      state_(other.state_),
+      length_(other.length_),
+      apple_x_(other.apple_x_),
+      apple_y_(other.apple_y_),
+      score_(other.score_),
+      high_score_(other.high_score_),
+      level_(other.level_),
+      speed_(other.speed_),
+      accelerated_(other.accelerated_),
+      gen_(other.gen_) {
+  // Копируем статический массив
+  for (int y = 0; y < kGameHeight; ++y) {
+    for (int x = 0; x < kGameWidth; ++x) {
+      field_[y][x] = other.field_[y][x];
+    }
+  }
+}
+
+/**
+ * @brief Оператор присваивания копированием.
+ */
+SnakeGame& SnakeGame::operator=(const SnakeGame& other) {
+  if (this != &other) {  // Защита от самоприсваивания
+    snake_ = other.snake_;
+    direction_ = other.direction_;
+    next_direction_ = other.next_direction_;
+    state_ = other.state_;
+    length_ = other.length_;
+    apple_x_ = other.apple_x_;
+    apple_y_ = other.apple_y_;
+    score_ = other.score_;
+    high_score_ = other.high_score_;
+    level_ = other.level_;
+    speed_ = other.speed_;
+    accelerated_ = other.accelerated_;
+    gen_ = other.gen_;
+    
+    // Копируем статический массив
+    for (int y = 0; y < kGameHeight; ++y) {
+      for (int x = 0; x < kGameWidth; ++x) {
+        field_[y][x] = other.field_[y][x];
+      }
+    }
+  }
+  return *this;
+}
+
+/**
+ * @brief Конструктор перемещения.
+ */
+SnakeGame::SnakeGame(SnakeGame&& other) noexcept
+    : snake_(std::move(other.snake_)),
+      direction_(other.direction_),
+      next_direction_(other.next_direction_),
+      state_(other.state_),
+      length_(other.length_),
+      apple_x_(other.apple_x_),
+      apple_y_(other.apple_y_),
+      score_(other.score_),
+      high_score_(other.high_score_),
+      level_(other.level_),
+      speed_(other.speed_),
+      accelerated_(other.accelerated_),
+      gen_(std::move(other.gen_)) {
+  // Перемещаем статический массив
+  for (int y = 0; y < kGameHeight; ++y) {
+    for (int x = 0; x < kGameWidth; ++x) {
+      field_[y][x] = other.field_[y][x];
+    }
+  }
+  
+  // Очищаем исходный объект
+  other.Reset();
+}
+
+/**
+ * @brief Оператор присваивания перемещением.
+ */
+SnakeGame& SnakeGame::operator=(SnakeGame&& other) noexcept {
+  if (this != &other) {  // Защита от самоприсваивания
+    snake_ = std::move(other.snake_);
+    direction_ = other.direction_;
+    next_direction_ = other.next_direction_;
+    state_ = other.state_;
+    length_ = other.length_;
+    apple_x_ = other.apple_x_;
+    apple_y_ = other.apple_y_;
+    score_ = other.score_;
+    high_score_ = other.high_score_;
+    level_ = other.level_;
+    speed_ = other.speed_;
+    accelerated_ = other.accelerated_;
+    gen_ = std::move(other.gen_);
+    
+    // Перемещаем статический массив
+    for (int y = 0; y < kGameHeight; ++y) {
+      for (int x = 0; x < kGameWidth; ++x) {
+        field_[y][x] = other.field_[y][x];
+      }
+    }
+    
+    // Очищаем исходный объект
+    other.Reset();
+  }
+  return *this;
+}
+
 
 }  // namespace s21

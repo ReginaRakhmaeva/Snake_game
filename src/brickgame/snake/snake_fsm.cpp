@@ -57,16 +57,10 @@ void SnakeFSM::HandleInput(UserAction_t action, bool hold) {
       game_.Terminate();
       break;
     case Up:
-      game_.ChangeDirection(Up);
-      break;
     case Down:
-      game_.ChangeDirection(Down);
-      break;
     case Left:
-      game_.ChangeDirection(Left);
-      break;
     case Right:
-      game_.ChangeDirection(Right);
+      game_.ChangeDirection(action, hold);  // 🎯 Передаем hold в ChangeDirection
       break;
     case Action:
       game_.Accelerate(hold);

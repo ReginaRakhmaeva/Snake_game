@@ -45,6 +45,12 @@ class MainWindow : public QMainWindow {
   void keyPressEvent(QKeyEvent* event) override;
 
   /**
+   * @brief Обработчик отпускания клавиш.
+   * @param event Событие отпускания клавиши
+   */
+  void keyReleaseEvent(QKeyEvent* event) override;
+
+  /**
    * @brief Обработчик закрытия окна.
    * @param event Событие закрытия
    */

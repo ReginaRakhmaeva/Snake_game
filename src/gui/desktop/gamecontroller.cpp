@@ -77,6 +77,7 @@ void GameController::pauseGame() {
 
   m_gamePaused = true;
   m_gameTimer->stop();
+  m_pressedKeys.clear();  // Очищаем нажатые клавиши при паузе
   emit gamePaused();
 }
 
@@ -85,6 +86,7 @@ void GameController::resumeGame() {
 
   m_gamePaused = false;
   m_gameTimer->start(600);
+  m_pressedKeys.clear();  // Очищаем нажатые клавиши при возобновлении
   emit gameResumed();
 }
 
@@ -92,6 +94,7 @@ void GameController::stopGame() {
   m_gameStarted = false;
   m_gamePaused = false;
   m_gameTimer->stop();
+  m_pressedKeys.clear();  // Очищаем нажатые клавиши
 }
 
 void GameController::processInput(UserAction_t action, bool hold) {
@@ -179,6 +182,9 @@ UserAction_t GameController::mapKeyToAction(int key) const {
 }
 
 void GameController::handleKeyPress(int key) {
+  // Добавляем клавишу в множество нажатых
+  m_pressedKeys.insert(key);
+  
   switch (key) {
     case Qt::Key_Return:
     case Qt::Key_Enter:
@@ -197,11 +203,29 @@ void GameController::handleKeyPress(int key) {
   if (isGameStarted() && !isGamePaused()) {
     UserAction_t action = mapKeyToAction(key);
     if (action != static_cast<UserAction_t>(-1)) {
+      // Для Snake определяем hold на основе удержания клавиши
       bool hold = false;
       if (m_currentGameType == GameType::SNAKE) {
-        hold = true;
+        // Проверяем, удерживается ли клавиша (нажата более одного раза)
+        hold = m_pressedKeys.contains(key);
       }
       processInput(action, hold);
+    }
+  }
+}
+
+void GameController::handleKeyRelease(int key) {
+  // Удаляем клавишу из множества нажатых
+  m_pressedKeys.remove(key);
+  
+  // Для Snake отключаем ускорение при отпускании любой клавиши движения
+  if (m_currentGameType == GameType::SNAKE) {
+    if (isGameStarted() && !isGamePaused()) {
+      UserAction_t action = mapKeyToAction(key);
+      if (action == Up || action == Down || action == Left || action == Right) {
+        // Отключаем ускорение при отпускании клавиши движения
+        processInput(action, false);
+      }
     }
   }
 }

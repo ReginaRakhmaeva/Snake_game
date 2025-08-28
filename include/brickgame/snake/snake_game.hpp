@@ -89,8 +89,9 @@ class SnakeGame {
   /**
    * @brief Меняет направление движения змейки (если допустимо).
    * @param action Действие пользователя (Up, Down, Left, Right).
+   * @param hold Флаг удержания клавиши для ускорения.
    */
-  void ChangeDirection(UserAction_t action);
+  void ChangeDirection(UserAction_t action, bool hold = false);
 
   /**
    * @brief Управляет ускорением змейки.
@@ -250,17 +251,6 @@ class SnakeGame {
    * @brief Флаг ускоренного движения (включается при резких манёврах).
    */
   bool accelerated_;
-
-  /**
-   * @brief Количество последовательных ходов в одном и том же направлении.
-   * Используется для активации ускорения.
-   */
-  int consecutive_moves_;
-
-  /**
-   * @brief Последнее направление движения, использованное змейкой.
-   */
-  SnakeDirection last_direction_;
 
   /**
    * @brief Игровое поле в виде матрицы (ячейки: пустая, змейка, яблоко).

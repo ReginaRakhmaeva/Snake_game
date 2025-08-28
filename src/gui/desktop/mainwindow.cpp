@@ -183,6 +183,10 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
   m_gameController->handleKeyPress(event->key());
 }
 
+void MainWindow::keyReleaseEvent(QKeyEvent* event) {
+  m_gameController->handleKeyRelease(event->key());
+}
+
 void MainWindow::closeEvent(QCloseEvent* event) {
   if (m_gameController->isGameStarted()) {
     m_gameController->stopGame();
