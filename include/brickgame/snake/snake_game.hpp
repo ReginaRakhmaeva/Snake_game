@@ -105,26 +105,30 @@ class SnakeGame {
   void Pause();
 
   /**
-   * @brief Возобновляет игру (после паузы или из Ready).
+   * @brief Возвращает текущее состояние игры.
+   * \return Состояние игры (Ready, Running, Paused, Won, Lost).
    */
-  void Resume();
+  SnakeGameState GetState() const { return state_; }
 
   /**
-   * @brief Принудительно завершает игру (Lost).
+   * @brief Устанавливает состояние игры (вызывается только FSM).
+   * 
+   * @param state новое состояние игры.
    */
-  void Terminate();
+  void SetState(SnakeGameState state) { state_ = state; }
+
+  /**
+   * @brief Запускает новую игру.
+   * 
+   * Сбрасывает состояние и инициализирует змейку и яблоко.
+   */
+  void StartGame();
 
   /**
    * @brief Возвращает полную информацию о текущем состоянии игры.
    * @return Структура GameInfo_t (поле, очки, уровень, скорость, пауза).
    */
   GameInfo_t GetGameInfo() const;
-
-  /**
-   * @brief Получает текущее состояние игры.
-   * @return Ready, Running, Paused, Won или Lost.
-   */
-  SnakeGameState GetState() const;
 
   /**
    * @brief Освобождает память, выделенную в GetGameInfo().

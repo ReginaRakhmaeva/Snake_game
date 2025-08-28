@@ -70,27 +70,18 @@ void SnakeGame::InitializeSnake() {
 }
 /**
  * @brief Основное обновление логики (ход змейки, генерация яблок, ускорение).
+ * 
+ * Выполняет игровую логику, НЕ изменяет состояние игры.
+ * Состояние управляется через FSM.
  */
 void SnakeGame::Update() {
-  if (state_ == SnakeGameState::Ready) {
-    InitializeSnake();
-    PlaceApple();
-    state_ = SnakeGameState::Running;
-    return;
-  }
-
   if (state_ != SnakeGameState::Running) return;
 
   direction_ = next_direction_;
   Move();
 
   int baseSpeed = 600 - (level_ - 1) * 40;
-
-  if (accelerated_) {
-    speed_ = baseSpeed / 2;
-  } else {
-    speed_ = baseSpeed;
-  }
+  speed_ = accelerated_ ? baseSpeed / 2 : baseSpeed;
 }
 /**
  * @brief Изменить направление движения змейки (с проверкой на валидность).
@@ -235,33 +226,8 @@ bool SnakeGame::IsOppositeDirection(SnakeDirection dir) const {
          (direction_ == SnakeDirection::Left && dir == SnakeDirection::Right) ||
          (direction_ == SnakeDirection::Right && dir == SnakeDirection::Left);
 }
-/**
- * \brief Получает текущее состояние игры.
- * \return Состояние игры (Ready, Running, Paused, Won, Lost).
- */
-SnakeGameState SnakeGame::GetState() const { return state_; }
-/**
- * \brief Возобновляет игру после паузы или из состояния Ready.
- * Если состояние Ready, то выполняет первый Update().
- */
-void SnakeGame::Resume() {
-  if (state_ == SnakeGameState::Paused || state_ == SnakeGameState::Ready) {
-    if (state_ == SnakeGameState::Ready) {
-      Update();
-    }
-    state_ = SnakeGameState::Running;
-  }
-}
-/**
- * \brief Ставит игру на паузу.
- */
-void SnakeGame::Pause() {
-  if (state_ == SnakeGameState::Running) state_ = SnakeGameState::Paused;
-}
-/**
- * \brief Принудительно завершает игру (состояние Lost).
- */
-void SnakeGame::Terminate() { state_ = SnakeGameState::Lost; }
+
+
 /**
  * \brief Управляет ускорением змейки.
  * \param enable true — включить ускорение, false — выключить.
@@ -512,6 +478,19 @@ void SnakeGame::UpdateSnake(const SnakeSegment& head, bool grow) {
     field_[tail.y][tail.x] = static_cast<int>(CellType::Empty);
     snake_.pop_back();
   }
+}
+
+/**
+ * @brief Запускает новую игру.
+ * 
+ * Сбрасывает состояние и инициализирует змейку и яблоко.
+ * Состояние устанавливается через FSM.
+ */
+void SnakeGame::StartGame() {
+  Reset();
+  InitializeSnake();
+  PlaceApple();
+  state_ = SnakeGameState::Running;
 }
 
 }  // namespace s21

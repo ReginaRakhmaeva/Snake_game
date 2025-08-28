@@ -32,20 +32,39 @@ class SnakeFSM {
    */
   explicit SnakeFSM(SnakeGame& game);
   /**
-   * @brief Обрабатывает действие пользователя.
+   * @brief Обрабатывает пользовательский ввод и меняет состояние игры.
    *
-   * На основе события (нажатия клавиши или удержания) вызывает
-   * соответствующие методы SnakeGame:
-   * - Start — сброс и запуск игры
-   * - Pause — пауза/возобновление
-   * - Terminate — завершение игры
-   * - Up/Down/Left/Right — изменение направления движения
-   * - Action — ускорение (удержание клавиши)
-   *
-   * @param action Действие пользователя (см. UserAction_t).
-   * @param hold Флаг удержания клавиши (используется для ускорения).
+   * @param action действие пользователя (Start, Pause, Terminate и т.д.)
+   * @param hold признак удержания кнопки (актуально для ускорения).
    */
   void HandleInput(UserAction_t action, bool hold);
+
+  /**
+   * @brief Устанавливает состояние игры.
+   * 
+   * @param state новое состояние игры.
+   */
+  void SetState(SnakeGameState state);
+
+  /**
+   * @brief Запускает новую игру.
+   */
+  void StartGame();
+
+  /**
+   * @brief Ставит игру на паузу.
+   */
+  void PauseGame();
+
+  /**
+   * @brief Возобновляет игру.
+   */
+  void ResumeGame();
+
+  /**
+   * @brief Завершает игру.
+   */
+  void TerminateGame();
 
  private:
   /**
