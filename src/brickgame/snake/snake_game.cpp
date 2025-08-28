@@ -11,18 +11,13 @@
  */
 #include "../../../include/brickgame/snake/snake_game.hpp"
 
+#include "../../../include/brickgame/common/types.h"
 #include <algorithm>
 #include <fstream>
 #include <random>
 #include <string>
 
 namespace s21 {
-/**
- * @brief Тип клетки игрового поля.
- */
-enum class CellType { Empty = 0, Snake = 1, Apple = 2 };
-
-constexpr int kMaxSnakeLength = 200;
 
 /**
  * @brief Конструктор SnakeGame.

@@ -33,6 +33,11 @@ struct SnakeSegment {
   int y;
 };
 
+/**
+ * @brief Максимальная длина змейки для победы.
+ */
+static constexpr int kMaxSnakeLength = 200;
+
 class SnakeGame {
  public:
   /**
