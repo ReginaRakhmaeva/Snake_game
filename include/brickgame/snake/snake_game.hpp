@@ -41,6 +41,37 @@ class SnakeGame {
   SnakeGame();
 
   /**
+   * @brief Деструктор.
+   */
+  ~SnakeGame() = default;
+
+  /**
+   * @brief Конструктор копирования.
+   * @param other Объект для копирования.
+   */
+  SnakeGame(const SnakeGame& other);
+
+  /**
+   * @brief Оператор присваивания копированием.
+   * @param other Объект для копирования.
+   * @return Ссылка на текущий объект.
+   */
+  SnakeGame& operator=(const SnakeGame& other);
+
+  /**
+   * @brief Конструктор перемещения.
+   * @param other Объект для перемещения.
+   */
+  SnakeGame(SnakeGame&& other) noexcept;
+
+  /**
+   * @brief Оператор присваивания перемещением.
+   * @param other Объект для перемещения.
+   * @return Ссылка на текущий объект.
+   */
+  SnakeGame& operator=(SnakeGame&& other) noexcept;
+
+  /**
    * @brief Полный сброс игры (счёт, уровень, змейка, поле).
    */
   void Reset();
