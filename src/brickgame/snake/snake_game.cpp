@@ -11,11 +11,12 @@
  */
 #include "../../../include/brickgame/snake/snake_game.hpp"
 
-#include "../../../include/brickgame/common/types.h"
 #include <algorithm>
 #include <fstream>
 #include <random>
 #include <string>
+
+#include "../../../include/brickgame/common/types.h"
 
 namespace s21 {
 
@@ -118,12 +119,11 @@ void SnakeGame::ChangeDirection(UserAction_t action, bool hold) {
 
   if (!IsOppositeDirection(new_direction)) {
     next_direction_ = new_direction;
-    
-    // 🎯 Управляем ускорением через hold
+
     if (hold) {
-      accelerated_ = true;  // Включаем ускорение при удержании
+      accelerated_ = true;
     } else {
-      accelerated_ = false; // Отключаем ускорение при отпускании
+      accelerated_ = false;
     }
   }
 }
@@ -135,50 +135,19 @@ void SnakeGame::ChangeDirection(UserAction_t action, bool hold) {
 void SnakeGame::Move() {
   if (snake_.empty()) return;
 
-  SnakeSegment head = snake_.front();
+  SnakeSegment head = CalculateNewHeadPosition();
 
-  switch (direction_) {
-    case SnakeDirection::Up:
-      head.y -= 1;
-      break;
-    case SnakeDirection::Down:
-      head.y += 1;
-      break;
-    case SnakeDirection::Left:
-      head.x -= 1;
-      break;
-    case SnakeDirection::Right:
-      head.x += 1;
-      break;
-  }
-
-  bool collision = (head.x < 0 || head.x >= kGameWidth || head.y < 0 ||
-                    head.y >= kGameHeight || CheckCollision(head.x, head.y));
-  if (collision) {
-    state_ = SnakeGameState::Lost;
-    UpdateHighScore();
+  if (CheckCollisions(head)) {
+    HandleCollision();
     return;
   }
 
-  bool grow = (head.x == apple_x_ && head.y == apple_y_);
-  snake_.push_front(head);
-  field_[head.y][head.x] = static_cast<int>(CellType::Snake);
+  bool grow = CheckAppleEaten(head);
+
+  UpdateSnake(head, grow);
 
   if (grow) {
-    ++length_;
-    score_ += 1;
-    UpdateHighScore();
-    if (length_ >= kMaxSnakeLength) {
-      state_ = SnakeGameState::Won;
-      UpdateHighScore();
-      return;
-    }
-    level_ = std::min(1 + score_ / 5, 10);
-    PlaceApple();
-  } else {
-    SnakeSegment tail = snake_.back();
-    field_[tail.y][tail.x] = static_cast<int>(CellType::Empty);
-    snake_.pop_back();
+    HandleAppleEaten();
   }
 }
 /**
@@ -297,11 +266,7 @@ void SnakeGame::Terminate() { state_ = SnakeGameState::Lost; }
  * \brief Управляет ускорением змейки.
  * \param enable true — включить ускорение, false — выключить.
  */
-void SnakeGame::Accelerate(bool enable) {
-  // 🎯 Ускорение теперь управляется через ChangeDirection с параметром hold
-  // Этот метод оставлен для совместимости с Action клавишей
-  accelerated_ = enable;
-}
+void SnakeGame::Accelerate(bool enable) { accelerated_ = enable; }
 /**
  * \brief Обрабатывает один игровой тик.
  * Если игра в состоянии Running — выполняет Update().
@@ -337,7 +302,7 @@ void SnakeGame::SaveHighScore() const {
 /**
  * @brief Конструктор копирования.
  */
-SnakeGame::SnakeGame(const SnakeGame& other) 
+SnakeGame::SnakeGame(const SnakeGame& other)
     : snake_(other.snake_),
       direction_(other.direction_),
       next_direction_(other.next_direction_),
@@ -351,7 +316,6 @@ SnakeGame::SnakeGame(const SnakeGame& other)
       speed_(other.speed_),
       accelerated_(other.accelerated_),
       gen_(other.gen_) {
-  // Копируем статический массив
   for (int y = 0; y < kGameHeight; ++y) {
     for (int x = 0; x < kGameWidth; ++x) {
       field_[y][x] = other.field_[y][x];
@@ -363,7 +327,7 @@ SnakeGame::SnakeGame(const SnakeGame& other)
  * @brief Оператор присваивания копированием.
  */
 SnakeGame& SnakeGame::operator=(const SnakeGame& other) {
-  if (this != &other) {  // Защита от самоприсваивания
+  if (this != &other) {
     snake_ = other.snake_;
     direction_ = other.direction_;
     next_direction_ = other.next_direction_;
@@ -377,8 +341,7 @@ SnakeGame& SnakeGame::operator=(const SnakeGame& other) {
     speed_ = other.speed_;
     accelerated_ = other.accelerated_;
     gen_ = other.gen_;
-    
-    // Копируем статический массив
+
     for (int y = 0; y < kGameHeight; ++y) {
       for (int x = 0; x < kGameWidth; ++x) {
         field_[y][x] = other.field_[y][x];
@@ -405,14 +368,12 @@ SnakeGame::SnakeGame(SnakeGame&& other) noexcept
       speed_(other.speed_),
       accelerated_(other.accelerated_),
       gen_(std::move(other.gen_)) {
-  // Перемещаем статический массив
   for (int y = 0; y < kGameHeight; ++y) {
     for (int x = 0; x < kGameWidth; ++x) {
       field_[y][x] = other.field_[y][x];
     }
   }
-  
-  // Очищаем исходный объект
+
   other.Reset();
 }
 
@@ -420,7 +381,7 @@ SnakeGame::SnakeGame(SnakeGame&& other) noexcept
  * @brief Оператор присваивания перемещением.
  */
 SnakeGame& SnakeGame::operator=(SnakeGame&& other) noexcept {
-  if (this != &other) {  // Защита от самоприсваивания
+  if (this != &other) {
     snake_ = std::move(other.snake_);
     direction_ = other.direction_;
     next_direction_ = other.next_direction_;
@@ -434,19 +395,123 @@ SnakeGame& SnakeGame::operator=(SnakeGame&& other) noexcept {
     speed_ = other.speed_;
     accelerated_ = other.accelerated_;
     gen_ = std::move(other.gen_);
-    
-    // Перемещаем статический массив
+
     for (int y = 0; y < kGameHeight; ++y) {
       for (int x = 0; x < kGameWidth; ++x) {
         field_[y][x] = other.field_[y][x];
       }
     }
-    
-    // Очищаем исходный объект
+
     other.Reset();
   }
   return *this;
 }
+/**
+ * @brief Вычисляет новые координаты головы змейки.
+ *
+ * Смещает голову в зависимости от текущего направления движения.
+ * Если змейка пуста, возвращает (0,0).
+ */
+SnakeSegment SnakeGame::CalculateNewHeadPosition() const {
+  if (snake_.empty()) {
+    return {0, 0};
+  }
 
+  SnakeSegment head = snake_.front();
+
+  switch (direction_) {
+    case SnakeDirection::Up:
+      head.y -= 1;
+      break;
+    case SnakeDirection::Down:
+      head.y += 1;
+      break;
+    case SnakeDirection::Left:
+      head.x -= 1;
+      break;
+    case SnakeDirection::Right:
+      head.x += 1;
+      break;
+  }
+
+  return head;
+}
+/**
+ * @brief Проверяет столкновения головы змейки.
+ *
+ * Смотрит выход за границы поля и пересечение с собственным телом.
+ *
+ * @param head новая позиция головы
+ * @return true если произошло столкновение, иначе false
+ */
+bool SnakeGame::CheckCollisions(const SnakeSegment& head) const {
+  if (head.x < 0 || head.x >= kGameWidth || head.y < 0 ||
+      head.y >= kGameHeight) {
+    return true;
+  }
+
+  return CheckCollision(head.x, head.y);
+}
+/**
+ * @brief Обрабатывает столкновение змейки.
+ *
+ * Переводит игру в состояние проигрыша и обновляет рекорд.
+ */
+void SnakeGame::HandleCollision() {
+  state_ = SnakeGameState::Lost;
+  UpdateHighScore();
+}
+/**
+ * @brief Проверяет, съедено ли яблоко.
+ *
+ * Сравнивает координаты головы змейки с позицией яблока.
+ *
+ * @param head новая позиция головы змейки
+ * @return true если яблоко съедено, иначе false
+ */
+bool SnakeGame::CheckAppleEaten(const SnakeSegment& head) const {
+  return (head.x == apple_x_ && head.y == apple_y_);
+}
+/**
+ * @brief Обрабатывает событие съедания яблока.
+ *
+ * Увеличивает длину змейки, добавляет очки, обновляет рекорд,
+ * проверяет условие победы и устанавливает новый уровень.
+ * При необходимости размещает новое яблоко.
+ */
+void SnakeGame::HandleAppleEaten() {
+  ++length_;
+  score_ += 1;
+  UpdateHighScore();
+
+  if (length_ >= kMaxSnakeLength) {
+    state_ = SnakeGameState::Won;
+    UpdateHighScore();
+    return;
+  }
+
+  level_ = std::min(1 + score_ / 5, 10);
+  PlaceApple();
+}
+/**
+ * @brief Обновляет положение змейки на поле.
+ *
+ * Добавляет новую голову в начало, помечает её как часть змейки.
+ * Если змейка не растёт — удаляет хвост и освобождает клетку.
+ *
+ * @param head Новая позиция головы змейки.
+ * @param grow Флаг, указывающий, нужно ли увеличить длину змейки
+ *             (true при поедании яблока).
+ */
+void SnakeGame::UpdateSnake(const SnakeSegment& head, bool grow) {
+  snake_.push_front(head);
+  field_[head.y][head.x] = static_cast<int>(CellType::Snake);
+
+  if (!grow) {
+    SnakeSegment tail = snake_.back();
+    field_[tail.y][tail.x] = static_cast<int>(CellType::Empty);
+    snake_.pop_back();
+  }
+}
 
 }  // namespace s21

@@ -144,6 +144,43 @@ class SnakeGame {
   void Move();
 
   /**
+   * @brief Вычисляет новую позицию головы змейки.
+   * @return Новая позиция головы.
+   */
+  SnakeSegment CalculateNewHeadPosition() const;
+
+  /**
+   * @brief Проверяет столкновения с границами поля и самой змейкой.
+   * @param head Позиция головы для проверки.
+   * @return true, если есть столкновение.
+   */
+  bool CheckCollisions(const SnakeSegment& head) const;
+
+  /**
+   * @brief Обрабатывает столкновение (поражение).
+   */
+  void HandleCollision();
+
+  /**
+   * @brief Проверяет, съела ли змейка яблоко.
+   * @param head Позиция головы.
+   * @return true, если яблоко съедено.
+   */
+  bool CheckAppleEaten(const SnakeSegment& head) const;
+
+  /**
+   * @brief Обрабатывает съедание яблока (рост змейки).
+   */
+  void HandleAppleEaten();
+
+  /**
+   * @brief Обновляет змейку (добавляет голову, удаляет хвост при необходимости).
+   * @param head Новая позиция головы.
+   * @param grow Флаг роста змейки.
+   */
+  void UpdateSnake(const SnakeSegment& head, bool grow);
+
+  /**
    * @brief Ставит яблоко в случайную пустую клетку.
    */
   void PlaceApple();

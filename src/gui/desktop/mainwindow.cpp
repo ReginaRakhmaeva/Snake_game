@@ -23,9 +23,9 @@ MainWindow::MainWindow(QWidget* parent)
       m_gameController(new GameController(this)),
       m_gameWidget(new GameWidget(this)),
       m_currentGameType(GameType::TETRIS) {
-  setupUI();
-  setupConnections();
-
+    setupUI();
+    setupConnections();
+    
   hide();
 
   m_gameController->showGameSelection();
@@ -34,59 +34,59 @@ MainWindow::MainWindow(QWidget* parent)
 MainWindow::~MainWindow() {}
 
 void MainWindow::setupUI() {
-  setWindowTitle("BrickGame Collection");
-  setFixedSize(800, 600);
-  setStyleSheet(
-      "QMainWindow { "
+    setWindowTitle("BrickGame Collection");
+    setFixedSize(800, 600);
+    setStyleSheet(
+        "QMainWindow { "
       "    background-color: #2c3e50; "
       "}");
 
-  m_centralWidget = new QWidget(this);
-  setCentralWidget(m_centralWidget);
-
-  m_mainLayout = new QHBoxLayout(m_centralWidget);
-  m_mainLayout->setSpacing(10);
-  m_mainLayout->setContentsMargins(10, 10, 10, 10);
-
-  setupGameWidget();
-
-  setupInfoPanel();
+    m_centralWidget = new QWidget(this);
+    setCentralWidget(m_centralWidget);
+    
+    m_mainLayout = new QHBoxLayout(m_centralWidget);
+    m_mainLayout->setSpacing(10);
+    m_mainLayout->setContentsMargins(10, 10, 10, 10);
+    
+    setupGameWidget();
+    
+    setupInfoPanel();
 }
 
 void MainWindow::setupGameWidget() {
-  m_gameWidget->setFixedSize(400, 580);
-  m_gameWidget->setStyleSheet(
-      "QWidget { "
+    m_gameWidget->setFixedSize(400, 580);
+    m_gameWidget->setStyleSheet(
+        "QWidget { "
       "    background-color: #34495e; "
       "    border: 2px solid #ecf0f1; "
       "    border-radius: 5px; "
       "}");
-  m_mainLayout->addWidget(m_gameWidget);
+    m_mainLayout->addWidget(m_gameWidget);
 }
 
 void MainWindow::setupInfoPanel() {
-  m_infoPanel = new QWidget(this);
-  m_infoPanel->setFixedWidth(200);
-  m_infoPanel->setStyleSheet(
-      "QWidget { "
+    m_infoPanel = new QWidget(this);
+    m_infoPanel->setFixedWidth(200);
+    m_infoPanel->setStyleSheet(
+        "QWidget { "
       "    background-color: #2c346fff; "
-      "    border: 2px solid #3498db; "
+        "    border: 2px solid #3498db; "
       "    border-radius: 5px; "
-      "    color: white; "
+        "    color: white; "
       "}");
-
-  QVBoxLayout* infoLayout = new QVBoxLayout(m_infoPanel);
-  infoLayout->setSpacing(10);
-  infoLayout->setContentsMargins(10, 10, 10, 10);
-
+    
+    QVBoxLayout* infoLayout = new QVBoxLayout(m_infoPanel);
+    infoLayout->setSpacing(10);
+    infoLayout->setContentsMargins(10, 10, 10, 10);
+    
   QString labelStyle =
-      "QLabel { "
-      "    font-size: 16px; "
-      "    font-weight: bold; "
-      "    color: #ecf0f1; "
+        "QLabel { "
+        "    font-size: 16px; "
+        "    font-weight: bold; "
+        "    color: #ecf0f1; "
       "    background-color: #2c3e50; "
       "    border-radius: 3px; "
-      "    padding: 8px; "
+        "    padding: 8px; "
       "}";
 
   QLabel* titleLabel = new QLabel("GAME INFO", m_infoPanel);
@@ -95,21 +95,21 @@ void MainWindow::setupInfoPanel() {
 
   m_scoreLabel = new QLabel("Score: 0", m_infoPanel);
   m_scoreLabel->setStyleSheet(labelStyle);
-  infoLayout->addWidget(m_scoreLabel);
-
-  m_highScoreLabel = new QLabel("High Score: 0", m_infoPanel);
+    infoLayout->addWidget(m_scoreLabel);
+    
+    m_highScoreLabel = new QLabel("High Score: 0", m_infoPanel);
   m_highScoreLabel->setStyleSheet(labelStyle);
-  infoLayout->addWidget(m_highScoreLabel);
-
-  m_levelLabel = new QLabel("Level: 1", m_infoPanel);
+    infoLayout->addWidget(m_highScoreLabel);
+    
+    m_levelLabel = new QLabel("Level: 1", m_infoPanel);
   m_levelLabel->setStyleSheet(labelStyle);
-  infoLayout->addWidget(m_levelLabel);
-
-  m_nextLabel = new QLabel("Next:", m_infoPanel);
+    infoLayout->addWidget(m_levelLabel);
+    
+    m_nextLabel = new QLabel("Next:", m_infoPanel);
   m_nextLabel->setStyleSheet(labelStyle);
-  m_nextLabel->setVisible(false);
-  infoLayout->addWidget(m_nextLabel);
-
+    m_nextLabel->setVisible(false);
+    infoLayout->addWidget(m_nextLabel);
+    
   m_nextFigureWidget = new QWidget(m_infoPanel);
   m_nextFigureWidget->setFixedSize(180, 120);
   m_nextFigureWidget->setStyleSheet(labelStyle);
@@ -122,35 +122,35 @@ void MainWindow::setupInfoPanel() {
   infoLayout->addWidget(m_nextFigureWidget);
 
   QString buttonStyle =
-      "QPushButton { "
+        "QPushButton { "
       "    background-color: #3498db; "
       "    border: 2px solid #2980b9; "
       "    border-radius: 5px; "
       "    color: white; "
-      "    font-size: 14px; "
-      "    font-weight: bold; "
-      "    padding: 12px; "
-      "} "
-      "QPushButton:hover { "
+        "    font-size: 14px; "
+        "    font-weight: bold; "
+        "    padding: 12px; "
+        "} "
+        "QPushButton:hover { "
       "    background-color: #2980b9; "
-      "} "
-      "QPushButton:pressed { "
+        "} "
+        "QPushButton:pressed { "
       "    background-color: #21618c; "
       "}";
 
   m_startButton = new QPushButton("Start", m_infoPanel);
   m_startButton->setStyleSheet(buttonStyle);
-  infoLayout->addWidget(m_startButton);
-
-  m_pauseButton = new QPushButton("Pause", m_infoPanel);
+    infoLayout->addWidget(m_startButton);
+    
+    m_pauseButton = new QPushButton("Pause", m_infoPanel);
   m_pauseButton->setStyleSheet(buttonStyle);
-  infoLayout->addWidget(m_pauseButton);
-
-  m_quitButton = new QPushButton("Quit", m_infoPanel);
+    infoLayout->addWidget(m_pauseButton);
+    
+    m_quitButton = new QPushButton("Quit", m_infoPanel);
   m_quitButton->setStyleSheet(buttonStyle);
-  infoLayout->addWidget(m_quitButton);
-
-  m_mainLayout->addWidget(m_infoPanel);
+    infoLayout->addWidget(m_quitButton);
+    
+    m_mainLayout->addWidget(m_infoPanel);
 }
 
 void MainWindow::setupConnections() {
@@ -192,30 +192,30 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     m_gameController->stopGame();
   }
   m_gameController->closeApplication();
-  event->accept();
+    event->accept();
 }
 
 void MainWindow::onGameStateChanged(const GameInfo_t& state) {
-  m_gameWidget->updateGameState(state);
-  updateInfoPanel(state);
+    m_gameWidget->updateGameState(state);
+    updateInfoPanel(state);
 }
 
 void MainWindow::onGameOver() {
-  GameOverDialog dialog(false, this);
+    GameOverDialog dialog(false, this);
   connect(&dialog, &GameOverDialog::restartRequested, m_gameController,
           &GameController::handleRestartGame);
   connect(&dialog, &GameOverDialog::quitRequested, m_gameController,
           &GameController::closeApplication);
-  dialog.exec();
+    dialog.exec();
 }
 
 void MainWindow::onGameWon() {
-  GameOverDialog dialog(true, this);
+    GameOverDialog dialog(true, this);
   connect(&dialog, &GameOverDialog::restartRequested, m_gameController,
           &GameController::handleRestartGame);
   connect(&dialog, &GameOverDialog::quitRequested, m_gameController,
           &GameController::closeApplication);
-  dialog.exec();
+    dialog.exec();
 }
 
 void MainWindow::onGamePaused() {}
@@ -233,13 +233,13 @@ void MainWindow::onGameSelected(GameType gameType) {
 }
 
 void MainWindow::onShowGameSelectionRequested() {
-  GameSelectionDialog dialog(this);
+    GameSelectionDialog dialog(this);
   connect(&dialog, &GameSelectionDialog::gameSelected, m_gameController,
           &GameController::handleGameSelection);
   connect(&dialog, &GameSelectionDialog::dialogRejected, m_gameController,
           &GameController::closeApplication);
 
-  dialog.exec();
+    dialog.exec();
 }
 
 void MainWindow::onApplicationCloseRequested() { close(); }
