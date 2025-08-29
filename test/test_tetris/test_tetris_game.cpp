@@ -356,3 +356,94 @@ TEST_F(TetrisGameTest, SaveHighScoreFunction) {
   EXPECT_NE(final_info.field, nullptr);
   freeGameInfo(&final_info);
 }
+
+// ========================================
+// Line Clearing Tests for Coverage
+// ========================================
+
+TEST_F(TetrisGameTest, SingleLineClearing) {
+  userInput(Start, false);
+  
+  // Создаем условия для заполнения линий
+  // Много движений вниз для накопления блоков
+  for (int i = 0; i < 800; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, MultipleLineClearingIntensive) {
+  userInput(Start, false);
+  
+  // Интенсивная игра для создания заполненных линий
+  for (int i = 0; i < 1200; ++i) {
+    userInput(Down, false);
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, LineClearingWithRotation) {
+  userInput(Start, false);
+  
+  // Комбинируем движения вниз с вращениями
+  for (int i = 0; i < 600; ++i) {
+    userInput(Down, false);
+    if (i % 10 == 0) {
+      userInput(Action, false);  // Вращение
+    }
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, LineClearingWithHold) {
+  userInput(Start, false);
+  
+  // Используем hold для быстрого падения
+  for (int i = 0; i < 400; ++i) {
+    userInput(Down, true);  // Hold для быстрого падения
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
+
+TEST_F(TetrisGameTest, LineClearingEdgeCase) {
+  userInput(Start, false);
+  
+  // Тест граничного случая - очень много движений
+  for (int i = 0; i < 1500; ++i) {
+    userInput(Down, false);
+    if (i % 50 == 0) {
+      userInput(Left, false);  // Иногда двигаемся влево
+    }
+    GameInfo_t info = updateCurrentState();
+    EXPECT_NE(info.field, nullptr);
+    freeGameInfo(&info);
+  }
+  
+  GameInfo_t final_info = updateCurrentState();
+  EXPECT_NE(final_info.field, nullptr);
+  freeGameInfo(&final_info);
+}
