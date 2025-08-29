@@ -41,9 +41,11 @@ static constexpr int kMaxSnakeLength = 200;
 class SnakeGame {
  public:
   /**
-   * @brief Конструктор. Загружает рекорд и инициализирует игру.
+   * @brief Конструктор по умолчанию.
    */
   SnakeGame();
+
+
 
   /**
    * @brief Деструктор.
@@ -110,12 +112,7 @@ class SnakeGame {
    */
   SnakeGameState GetState() const { return state_; }
 
-  /**
-   * @brief Устанавливает состояние игры (вызывается только FSM).
-   * 
-   * @param state новое состояние игры.
-   */
-  void SetState(SnakeGameState state) { state_ = state; }
+
 
   /**
    * @brief Запускает новую игру.
@@ -123,6 +120,31 @@ class SnakeGame {
    * Сбрасывает состояние и инициализирует змейку и яблоко.
    */
   void StartGame();
+
+  /**
+   * @brief Устанавливает состояние игры в Running.
+   */
+  void SetRunning();
+
+  /**
+   * @brief Устанавливает состояние игры в Paused.
+   */
+  void SetPaused();
+
+  /**
+   * @brief Устанавливает состояние игры в Ready.
+   */
+  void SetReady();
+
+  /**
+   * @brief Устанавливает состояние игры в Won.
+   */
+  void SetWon();
+
+  /**
+   * @brief Устанавливает состояние игры в Lost.
+   */
+  void SetLost();
 
   /**
    * @brief Возвращает полную информацию о текущем состоянии игры.

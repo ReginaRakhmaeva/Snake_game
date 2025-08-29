@@ -37,13 +37,14 @@ extern "C" EXPORT void userInput(UserAction_t action, bool hold) {
 /**
  * @brief Обновляет состояние игры Snake.
  *
- * Вызывает тик игрового цикла, освобождает предыдущее состояние,
- * получает новое GameInfo_t для отображения.
+ * Вызывает тик игрового цикла, синхронизирует состояние FSM,
+ * освобождает предыдущее состояние, получает новое GameInfo_t для отображения.
  *
  * @return GameInfo_t структура с данными для отрисовки.
  */
 extern "C" EXPORT GameInfo_t updateCurrentState() {
   s21::game.Tick();
+  s21::fsm.UpdateState();
   s21::game.FreeGameInfo(previous_info);
   previous_info = s21::game.GetGameInfo();
   return previous_info;
@@ -54,7 +55,7 @@ extern "C" EXPORT GameInfo_t updateCurrentState() {
  * @return true если Snake проиграл или победил, иначе false.
  */
 extern "C" EXPORT bool isGameOver() {
-  auto state = s21::game.GetState();
+  auto state = s21::fsm.GetState();
   return state == s21::SnakeGameState::Lost ||
          state == s21::SnakeGameState::Won;
 }
@@ -65,5 +66,5 @@ extern "C" EXPORT bool isGameOver() {
  */
 
 extern "C" EXPORT bool isVictory() {
-  return s21::game.GetState() == s21::SnakeGameState::Won;
+  return s21::fsm.GetState() == s21::SnakeGameState::Won;
 }
