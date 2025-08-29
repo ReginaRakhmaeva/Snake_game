@@ -42,18 +42,19 @@ void SnakeFSM::HandleInput(UserAction_t action, bool hold) {
       if (game_.GetState() == SnakeGameState::Ready ||
           game_.GetState() == SnakeGameState::Lost ||
           game_.GetState() == SnakeGameState::Won) {
-        StartGame();
+        game_.Reset();
+        game_.Resume();
       }
       break;
     case Pause:
       if (game_.GetState() == SnakeGameState::Running) {
-        PauseGame();
+        game_.Pause();
       } else if (game_.GetState() == SnakeGameState::Paused) {
-        ResumeGame();
+        game_.Resume();
       }
       break;
     case Terminate:
-      TerminateGame();
+      game_.Terminate();
       break;
     case Up:
     case Down:
@@ -67,27 +68,6 @@ void SnakeFSM::HandleInput(UserAction_t action, bool hold) {
     default:
       break;
   }
-}
-
-void SnakeFSM::SetState(SnakeGameState state) {
-  game_.SetState(state);
-}
-
-void SnakeFSM::StartGame() {
-  game_.StartGame();
-  SetState(SnakeGameState::Running);
-}
-
-void SnakeFSM::PauseGame() {
-  SetState(SnakeGameState::Paused);
-}
-
-void SnakeFSM::ResumeGame() {
-  SetState(SnakeGameState::Running);
-}
-
-void SnakeFSM::TerminateGame() {
-  SetState(SnakeGameState::Lost);
 }
 
 }  // namespace s21
