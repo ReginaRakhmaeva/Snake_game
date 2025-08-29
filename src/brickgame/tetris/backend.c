@@ -286,11 +286,15 @@ BackendStatus backend_handle_input(UserAction_t action, bool hold) {
       break;
     case Down:
       if (hold) {
-        while (!check_collision(0, 1)) {
-          current_piece.y += 1;
+        for (int i = 0; i < 3; i++) {
+          if (!check_collision(0, 1)) {
+            current_piece.y += 1;
+          } else {
+            break;
+          }
         }
-        return backend_fix_piece();
       } else {
+
         if (!check_collision(0, 1)) current_piece.y += 1;
       }
       break;

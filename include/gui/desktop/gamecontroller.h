@@ -19,6 +19,7 @@
 #include <QTimer>
 #include <memory>
 #include <QSet>
+#include <QMap>
 
 #include "../../brickgame/common/types.h"
 #include "libraryloader.h"
@@ -229,6 +230,10 @@ class GameController : public QObject {
   bool m_gameStarted; /**< Флаг состояния игры: запущена/не запущена */
   bool m_gamePaused;  /**< Флаг состояния игры: на паузе/не на паузе */
   QSet<int> m_pressedKeys; /**< Множество нажатых клавиш для отслеживания удержания */
+  
+  // Переменные для дебаунсинга клавиш в Tetris
+  QMap<int, qint64> m_lastKeyPressTime; /**< Время последнего нажатия клавиши */
+  static const qint64 KEY_DEBOUNCE_MS = 100; /**< Задержка дебаунсинга в миллисекундах */
 };
 
 #endif  // GAMECONTROLLER_H

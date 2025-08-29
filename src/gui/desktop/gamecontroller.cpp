@@ -24,6 +24,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QDir>
+#include <QDateTime>
 
 GameController::GameController(QObject *parent)
     : QObject(parent),
@@ -77,7 +78,8 @@ void GameController::pauseGame() {
 
   m_gamePaused = true;
   m_gameTimer->stop();
-  m_pressedKeys.clear();  
+  m_pressedKeys.clear();
+  m_lastKeyPressTime.clear();
   emit gamePaused();
 }
 
@@ -86,7 +88,8 @@ void GameController::resumeGame() {
 
   m_gamePaused = false;
   m_gameTimer->start(600);
-  m_pressedKeys.clear();  
+  m_pressedKeys.clear();
+  m_lastKeyPressTime.clear();
   emit gameResumed();
 }
 
@@ -94,7 +97,8 @@ void GameController::stopGame() {
   m_gameStarted = false;
   m_gamePaused = false;
   m_gameTimer->stop();
-  m_pressedKeys.clear();  
+  m_pressedKeys.clear();
+  m_lastKeyPressTime.clear();
 }
 
 void GameController::processInput(UserAction_t action, bool hold) {
@@ -206,9 +210,17 @@ void GameController::handleKeyPress(int key) {
       
       bool hold = false;
       if (m_currentGameType == GameType::SNAKE) {
-        
         hold = m_pressedKeys.contains(key);
+      } else if (m_currentGameType == GameType::TETRIS) {
+        qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+        qint64 lastTime = m_lastKeyPressTime.value(key, 0);
+        
+        if (currentTime - lastTime < KEY_DEBOUNCE_MS) {
+          return;
+        }
+        m_lastKeyPressTime[key] = currentTime;
       }
+      
       processInput(action, hold);
     }
   }
@@ -218,12 +230,12 @@ void GameController::handleKeyRelease(int key) {
   
   m_pressedKeys.remove(key);
   
+  m_lastKeyPressTime.remove(key);
   
   if (m_currentGameType == GameType::SNAKE) {
     if (isGameStarted() && !isGamePaused()) {
       UserAction_t action = mapKeyToAction(key);
       if (action == Up || action == Down || action == Left || action == Right) {
-        
         processInput(action, false);
       }
     }
@@ -284,7 +296,6 @@ GameController::GameController(const GameController& other)
 
 GameController& GameController::operator=(const GameController& other) {
   if (this != &other) {
-    QObject::operator=(other);
     
     m_currentGameType = other.m_currentGameType;
     m_gameStarted = other.m_gameStarted;
