@@ -23,6 +23,7 @@
 #include "../../../include/brickgame/tetris/game.h"
 
 static GameInfo_t game_info;
+static GameState_t previous_state = STATE_INIT;
 
 /**
  * @brief Сбрасывает текущее состояние игры и инициализирует новое.
@@ -73,13 +74,15 @@ EXPORT void userInput(UserAction_t action, bool hold) {
 EXPORT GameInfo_t updateCurrentState() {
   GameState_t state = fsm_get_state();
 
-  if (!game_info.field) {
+  if (previous_state == STATE_GAME_OVER && state == STATE_RUNNING) {
+    reset_game_info();
+  }
+  else if (!game_info.field || state == STATE_INIT) {
     reset_game_info();
   }
 
-  if (state == STATE_INIT) {
-    reset_game_info();
-  }
+  previous_state = state;
+
   if (state == STATE_RUNNING) {
     BackendStatus status = backend_update_physics(&game_info);
     if (status == BACKEND_GAME_OVER) {
@@ -94,7 +97,9 @@ EXPORT GameInfo_t updateCurrentState() {
   game_info.speed = backend_info.speed;
   game_info.pause = (state == STATE_PAUSED);
 
-  backend_overlay_piece(&game_info);
+  if (state == STATE_RUNNING) {
+    backend_overlay_piece(&game_info);
+  }
 
   return game_info;
 }

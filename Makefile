@@ -54,7 +54,7 @@ $(LIBTETRIS): $(TETRIS_SRC)
 $(LIBSNAKE): $(SNAKE_SRC)
 	$(CXX) $(CXXFLAGS) $(SHARED_FLAGS) -o $@ $(SNAKE_SRC)
 
-brickgame_cli: $(CLI_SRC)
+brickgame_cli: $(LIBTETRIS) $(LIBSNAKE) $(CLI_SRC)
 	$(CC) $(CFLAGS) -o $@ $(CLI_SRC) $(LDFLAGS)
 
 brickgame_desktop: $(LIBTETRIS) $(LIBSNAKE)

@@ -55,7 +55,7 @@ void fsm_process_input(UserAction_t action) {
 
     case STATE_GAME_OVER:
       if (action == Start) {
-        current_state = STATE_INIT;
+        current_state = STATE_RUNNING; 
       }
       break;
   }
