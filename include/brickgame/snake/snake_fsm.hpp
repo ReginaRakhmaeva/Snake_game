@@ -17,7 +17,6 @@
 #include "snake_game.hpp"
 
 namespace s21 {
-
 /**
  * @brief Класс конечного автомата для игры Snake.
  *
@@ -33,7 +32,7 @@ class SnakeFSM {
    */
   explicit SnakeFSM(SnakeGame& game);
   /**
-   * @brief Обрабатывает пользовательский ввод и выполняет переходы состояний.
+   * @brief Обрабатывает пользовательский ввод и меняет состояние игры.
    *
    * @param action действие пользователя (Start, Pause, Terminate и т.д.)
    * @param hold признак удержания кнопки (актуально для ускорения).
@@ -41,69 +40,37 @@ class SnakeFSM {
   void HandleInput(UserAction_t action, bool hold);
 
   /**
-   * @brief Обрабатывает изменения состояния из игры (победа/поражение).
+   * @brief Устанавливает состояние игры.
    * 
-   * Вызывается после Update() для синхронизации состояния FSM с состоянием игры.
+   * @param state новое состояние игры.
    */
-  void UpdateState();
+  void SetState(SnakeGameState state);
 
   /**
-   * @brief Возвращает текущее состояние FSM.
-   * 
-   * @return текущее состояние игры.
+   * @brief Запускает новую игру.
    */
-  SnakeGameState GetState() const { return current_state_; }
+  void StartGame();
+
+  /**
+   * @brief Ставит игру на паузу.
+   */
+  void PauseGame();
+
+  /**
+   * @brief Возобновляет игру.
+   */
+  void ResumeGame();
+
+  /**
+   * @brief Завершает игру.
+   */
+  void TerminateGame();
 
  private:
   /**
    * @brief Ссылка на управляемый объект игры Snake.
    */
   SnakeGame& game_;
-
-  /**
-   * @brief Текущее состояние FSM.
-   */
-  SnakeGameState current_state_;
-
-  /**
-   * @brief Выполняет переход в новое состояние.
-   * 
-   * @param new_state новое состояние.
-   */
-  void TransitionTo(SnakeGameState new_state);
-
-  /**
-   * @brief Проверяет, возможен ли переход в новое состояние.
-   * 
-   * @param new_state новое состояние.
-   * @return true если переход валиден, иначе false.
-   */
-  bool IsValidTransition(SnakeGameState new_state) const;
-
-  /**
-   * @brief Выполняет действие при переходе в состояние Ready.
-   */
-  void OnEnterReady();
-
-  /**
-   * @brief Выполняет действие при переходе в состояние Running.
-   */
-  void OnEnterRunning();
-
-  /**
-   * @brief Выполняет действие при переходе в состояние Paused.
-   */
-  void OnEnterPaused();
-
-  /**
-   * @brief Выполняет действие при переходе в состояние Won.
-   */
-  void OnEnterWon();
-
-  /**
-   * @brief Выполняет действие при переходе в состояние Lost.
-   */
-  void OnEnterLost();
 };
 
 }  // namespace s21

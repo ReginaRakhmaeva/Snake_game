@@ -484,47 +484,13 @@ void SnakeGame::UpdateSnake(const SnakeSegment& head, bool grow) {
  * @brief Запускает новую игру.
  * 
  * Сбрасывает состояние и инициализирует змейку и яблоко.
- * Состояние управляется FSM.
+ * Состояние устанавливается через FSM.
  */
 void SnakeGame::StartGame() {
   Reset();
   InitializeSnake();
   PlaceApple();
-}
-
-/**
- * @brief Устанавливает состояние игры в Running.
- */
-void SnakeGame::SetRunning() {
   state_ = SnakeGameState::Running;
-}
-
-/**
- * @brief Устанавливает состояние игры в Paused.
- */
-void SnakeGame::SetPaused() {
-  state_ = SnakeGameState::Paused;
-}
-
-/**
- * @brief Устанавливает состояние игры в Ready.
- */
-void SnakeGame::SetReady() {
-  state_ = SnakeGameState::Ready;
-}
-
-/**
- * @brief Устанавливает состояние игры в Won.
- */
-void SnakeGame::SetWon() {
-  state_ = SnakeGameState::Won;
-}
-
-/**
- * @brief Устанавливает состояние игры в Lost.
- */
-void SnakeGame::SetLost() {
-  state_ = SnakeGameState::Lost;
 }
 
 }  // namespace s21

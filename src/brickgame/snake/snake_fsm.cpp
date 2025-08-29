@@ -2,8 +2,15 @@
  * @file snake_fsm.cpp
  * @brief Реализация конечного автомата (FSM) для игры Snake.
  *
- * Канонический FSM с внутренним состоянием и четко определенными переходами.
- * FSM управляет состоянием игры и выполняет соответствующие действия.
+ * FSM отвечает за обработку пользовательского ввода и
+ * управление состоянием игры Snake (через SnakeGame).
+ *
+ * Основные задачи:
+ * - запуск новой игры и рестарт;
+ * - постановка игры на паузу и возобновление;
+ * - завершение игры;
+ * - изменение направления движения змейки;
+ * - ускорение змейки при удержании кнопки.
  */
 #include "../../../include/brickgame/snake/snake_fsm.hpp"
 
@@ -14,147 +21,73 @@ namespace s21 {
  *
  * @param game ссылка на SnakeGame, которым управляет FSM.
  */
-SnakeFSM::SnakeFSM(SnakeGame& game)
-    : game_(game), current_state_(SnakeGameState::Ready) {
-  OnEnterReady();
-}
-
+SnakeFSM::SnakeFSM(SnakeGame& game) : game_(game) {}
 /**
- * @brief Обрабатывает пользовательский ввод и выполняет переходы состояний.
+ * @brief Обрабатывает пользовательский ввод и меняет состояние игры.
  *
- * Канонический FSM с четко определенными переходами:
- * - Ready → Running (Start)
- * - Running → Paused (Pause)
- * - Paused → Running (Pause)
- * - Running → Lost (Terminate)
- * - Lost → Ready (Start)
- * - Won → Ready (Start)
+ * В зависимости от текущего состояния SnakeGame и действия пользователя
+ * выполняются переходы и вызовы соответствующих методов:
+ * - Start: запуск новой игры или рестарт после победы/поражения;
+ * - Pause: пауза и возобновление;
+ * - Terminate: завершение игры;
+ * - Up/Down/Left/Right: смена направления змейки;
+ * - Action: ускорение (при удержании кнопки).
  *
  * @param action действие пользователя (Start, Pause, Terminate и т.д.)
  * @param hold признак удержания кнопки (актуально для ускорения).
  */
 void SnakeFSM::HandleInput(UserAction_t action, bool hold) {
-  switch (current_state_) {
-    case SnakeGameState::Ready:
-      if (action == Start) {
-        TransitionTo(SnakeGameState::Running);
+  switch (action) {
+    case Start:
+      if (game_.GetState() == SnakeGameState::Ready ||
+          game_.GetState() == SnakeGameState::Lost ||
+          game_.GetState() == SnakeGameState::Won) {
+        StartGame();
       }
       break;
-
-    case SnakeGameState::Running:
-      switch (action) {
-        case Pause:
-          TransitionTo(SnakeGameState::Paused);
-          break;
-        case Terminate:
-          TransitionTo(SnakeGameState::Lost);
-          break;
-        case Up:
-        case Down:
-        case Left:
-        case Right:
-          game_.ChangeDirection(action, hold);
-          break;
-        case Action:
-          game_.Accelerate(hold);
-          break;
-        default:
-          break;
+    case Pause:
+      if (game_.GetState() == SnakeGameState::Running) {
+        PauseGame();
+      } else if (game_.GetState() == SnakeGameState::Paused) {
+        ResumeGame();
       }
       break;
-
-    case SnakeGameState::Paused:
-      if (action == Pause) {
-        TransitionTo(SnakeGameState::Running);
-      } else if (action == Terminate) {
-        TransitionTo(SnakeGameState::Lost);
-      }
+    case Terminate:
+      TerminateGame();
       break;
-
-    case SnakeGameState::Lost:
-    case SnakeGameState::Won:
-      if (action == Start) {
-        TransitionTo(SnakeGameState::Ready);
-      }
+    case Up:
+    case Down:
+    case Left:
+    case Right:
+      game_.ChangeDirection(action, hold);
       break;
-  }
-}
-
-void SnakeFSM::TransitionTo(SnakeGameState new_state) {
-  if (current_state_ != new_state && IsValidTransition(new_state)) {
-    current_state_ = new_state;
-
-    switch (new_state) {
-      case SnakeGameState::Ready:
-        OnEnterReady();
-        break;
-      case SnakeGameState::Running:
-        OnEnterRunning();
-        break;
-      case SnakeGameState::Paused:
-        OnEnterPaused();
-        break;
-      case SnakeGameState::Won:
-        OnEnterWon();
-        break;
-      case SnakeGameState::Lost:
-        OnEnterLost();
-        break;
-    }
-  }
-}
-
-bool SnakeFSM::IsValidTransition(SnakeGameState new_state) const {
-  switch (current_state_) {
-    case SnakeGameState::Ready:
-      return new_state == SnakeGameState::Running;
-
-    case SnakeGameState::Running:
-      return new_state == SnakeGameState::Paused ||
-             new_state == SnakeGameState::Lost ||
-             new_state == SnakeGameState::Won;
-
-    case SnakeGameState::Paused:
-      return new_state == SnakeGameState::Running ||
-             new_state == SnakeGameState::Lost;
-
-    case SnakeGameState::Lost:
-    case SnakeGameState::Won:
-      return new_state == SnakeGameState::Ready;
-
+    case Action:
+      game_.Accelerate(hold);
+      break;
     default:
-      return false;
+      break;
   }
 }
 
-void SnakeFSM::OnEnterReady() {
+void SnakeFSM::SetState(SnakeGameState state) {
+  game_.SetState(state);
+}
+
+void SnakeFSM::StartGame() {
   game_.StartGame();
-  game_.SetReady();
+  SetState(SnakeGameState::Running);
 }
 
-void SnakeFSM::OnEnterRunning() {
-  game_.SetRunning();
+void SnakeFSM::PauseGame() {
+  SetState(SnakeGameState::Paused);
 }
 
-void SnakeFSM::OnEnterPaused() {
-  game_.SetPaused();
+void SnakeFSM::ResumeGame() {
+  SetState(SnakeGameState::Running);
 }
 
-void SnakeFSM::OnEnterWon() {
-  game_.SetWon();
-}
-
-void SnakeFSM::OnEnterLost() {
-  game_.SetLost();
-}
-
-void SnakeFSM::UpdateState() {
-  SnakeGameState game_state = game_.GetState();
-
-  if (game_state != current_state_ && (game_state == SnakeGameState::Won ||
-                                       game_state == SnakeGameState::Lost)) {
-    current_state_ = game_state;
-  }
+void SnakeFSM::TerminateGame() {
+  SetState(SnakeGameState::Lost);
 }
 
 }  // namespace s21
