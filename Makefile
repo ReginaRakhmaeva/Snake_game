@@ -96,65 +96,29 @@ uninstall: check_permissions
 	@echo "Uninstalled from $(BINDIR), $(LIBDIR), $(INCLUDEDIR)"
 
 clean:
-	@echo "=== Cleaning all build artifacts ==="
-	# Удаляем исполняемые файлы
-	rm -f $(LIBTETRIS) $(LIBSNAKE) brickgame_cli brickgame_desktop
-	rm -f brickgame_desktop_autogen
+	@echo "=== Cleaning build artifacts ==="
+	# Удаляем исполняемые файлы и библиотеки
+	rm -f libtetris.so libsnake.so brickgame_cli brickgame_desktop
 	
-	# Удаляем отладочные символы
-	rm -rf *.dSYM
+	# Удаляем объектные файлы
+	rm -f *.o
 	
-	# Удаляем объектные файлы и временные файлы
-	rm -f *.o *.out *.a *.gcda *.gcno *.gcov
-	rm -f *.so *.dylib *.dll
-	rm -f *.exe *.app
+	# Удаляем файлы покрытия кода
+	rm -f *.gcda *.gcno *.gcov
 	
-	# Удаляем логи и отладочные файлы
-	rm -f debug*.log debug*.txt
-	rm -f *.log
+	# Удаляем высокие счета
 	rm -f snake_highscore.txt tetris_highscore.txt
-	rm -f cppcheck-report.xml
-	rm -f valgrind-out.txt
 	
-	# Удаляем директории сборки (но сохраняем CMakeLists.txt)
-	rm -rf $(QT_BUILD_DIR)
-	rm -rf build_qt
-	rm -f test/*.gcno test/*.gcda
+	# Удаляем тестовые исполняемые файлы
 	rm -f test/test_snake_bin test/test_tetris_bin
+	
+	# Удаляем файлы покрытия тестов
+	rm -f test/*.gcno test/*.gcda
 	rm -f test/coverage.info test/coverage_filtered.info
 	rm -rf test/coverage_report test/lcov_report
-	rm -rf coverage_report
-	rm -rf lcov_report
-	rm -f coverage.info
-	rm -f coverage_filtered.info
-	rm -rf CMakeFiles
-	rm -f CMakeCache.txt
-	rm -f cmake_install.cmake
-	rm -f Makefile.cmake
 	
-	# Удаляем файлы Qt
-	rm -rf *.moc
-	rm -rf moc_*.cpp
-	rm -rf ui_*.h
-	rm -rf qrc_*.cpp
-	rm -rf *_autogen
-	
-	# Удаляем временные файлы системы
-	rm -rf .DS_Store
-	rm -rf Thumbs.db
-	rm -f *~
-	rm -f .#*
-	rm -f #*#
-	
-	# Удаляем файлы IDE
-	rm -rf .vscode
-	rm -rf .idea
-	rm -f *.swp *.swo
-	rm -f *~
-	
-	# Удаляем архивы
-	rm -f brickgame-*.tar.gz
-	rm -f brickgame-*.zip
+	# Удаляем директорию сборки Qt
+	rm -rf build_qt
 	
 	# Удаляем документацию и архивы
 	rm -rf doc/
@@ -237,7 +201,7 @@ lcov:
 dvi:
 	@echo "=== Generating documentation ==="
 	@if command -v doxygen >/dev/null 2>&1; then \
-		doxygen Doxyfile 2>/dev/null || echo "Doxyfile not found, creating default..."; \
+		rm -rf doc; \
 		echo "Creating default Doxyfile..."; \
 		echo "PROJECT_NAME = BrickGame" > Doxyfile; \
 		echo "PROJECT_NUMBER = 1.0" >> Doxyfile; \
@@ -245,9 +209,20 @@ dvi:
 		echo "INPUT = src include" >> Doxyfile; \
 		echo "RECURSIVE = YES" >> Doxyfile; \
 		echo "GENERATE_HTML = YES" >> Doxyfile; \
-		echo "GENERATE_LATEX = YES" >> Doxyfile; \
-		doxygen Doxyfile; \
-		@echo "Documentation generated in doc/"; \
+		echo "GENERATE_LATEX = NO" >> Doxyfile; \
+		echo "HAVE_DOT = NO" >> Doxyfile; \
+		echo "CLASS_DIAGRAMS = NO" >> Doxyfile; \
+		echo "COLLABORATION_GRAPH = NO" >> Doxyfile; \
+		echo "UML_LOOK = NO" >> Doxyfile; \
+		echo "TEMPLATE_RELATIONS = NO" >> Doxyfile; \
+		echo "INCLUDE_GRAPH = NO" >> Doxyfile; \
+		echo "INCLUDED_BY_GRAPH = NO" >> Doxyfile; \
+		echo "CALL_GRAPH = NO" >> Doxyfile; \
+		echo "CALLER_GRAPH = NO" >> Doxyfile; \
+		echo "GRAPHICAL_HIERARCHY = NO" >> Doxyfile; \
+		echo "DIRECTORY_GRAPH = NO" >> Doxyfile; \
+		doxygen Doxyfile 2>/dev/null || true; \
+		echo "Documentation generated in doc/"; \
 	else \
 		echo "Doxygen not found. Please install doxygen to generate documentation."; \
 	fi
