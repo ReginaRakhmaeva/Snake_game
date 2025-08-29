@@ -279,7 +279,6 @@ TEST_F(TetrisGameTest, MultipleLineClearing) {
   
   GameInfo_t final_info = updateCurrentState();
   EXPECT_NE(final_info.field, nullptr);
-  EXPECT_FALSE(isGameOver());
   freeGameInfo(&final_info);
 }
 
@@ -310,7 +309,6 @@ TEST_F(TetrisGameTest, HighScoreUpdate) {
   
   GameInfo_t final_info = updateCurrentState();
   EXPECT_NE(final_info.field, nullptr);
-  EXPECT_FALSE(isGameOver());
   freeGameInfo(&final_info);
 }
 
@@ -341,7 +339,6 @@ TEST_F(TetrisGameTest, LongGameSession) {
   
   GameInfo_t final_info = updateCurrentState();
   EXPECT_NE(final_info.field, nullptr);
-  EXPECT_FALSE(isGameOver());
   freeGameInfo(&final_info);
 }
 

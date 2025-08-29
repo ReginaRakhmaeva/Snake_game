@@ -127,6 +127,7 @@ static void game_loop(GameAPI api, GameType game_type) {
     }
 
     api.userInput(action, hold);
+    
     GameInfo_t info = api.updateState();
 
     if (!started) {

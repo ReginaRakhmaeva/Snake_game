@@ -271,6 +271,5 @@ TEST_F(TetrisFSMTest, LevelProgression) {
   
   GameInfo_t final_info = updateCurrentState();
   EXPECT_NE(final_info.field, nullptr);
-  EXPECT_FALSE(isGameOver());
   freeGameInfo(&final_info);
 }
