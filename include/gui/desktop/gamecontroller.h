@@ -44,6 +44,32 @@ class GameController : public QObject {
   ~GameController();
 
   /**
+   * @brief Конструктор копирования.
+   * @param other Объект для копирования.
+   */
+  GameController(const GameController& other);
+
+  /**
+   * @brief Оператор присваивания копированием.
+   * @param other Объект для копирования.
+   * @return Ссылка на текущий объект.
+   */
+  GameController& operator=(const GameController& other);
+
+  /**
+   * @brief Конструктор перемещения.
+   * @param other Объект для перемещения.
+   */
+  GameController(GameController&& other) noexcept;
+
+  /**
+   * @brief Оператор присваивания перемещением.
+   * @param other Объект для перемещения.
+   * @return Ссылка на текущий объект.
+   */
+  GameController& operator=(GameController&& other) noexcept;
+
+  /**
    * @brief Загружает игру заданного типа через LibraryLoader.
    * @param gameType Тип игры (Tetris, Snake).
    * @return true, если игра успешно загружена, иначе false.
@@ -186,6 +212,17 @@ class GameController : public QObject {
   void updateGame();
 
  private:
+  /**
+   * @brief Вспомогательная функция для копирования состояния объекта.
+   * @param other Объект для копирования.
+   */
+  void copyFrom(const GameController& other);
+
+  /**
+   * @brief Вспомогательная функция для очистки ресурсов.
+   */
+  void cleanup();
+
   LibraryLoader* m_libraryLoader; /**< Загрузчик динамических библиотек игры */
   GameType m_currentGameType;     /**< Текущий тип игры */
   QTimer* m_gameTimer;            /**< Таймер для игрового цикла */

@@ -266,3 +266,92 @@ void GameController::handleRestartGame() {
 void GameController::showGameSelection() { emit showGameSelectionRequested(); }
 
 void GameController::closeApplication() { emit applicationCloseRequested(); }
+
+GameController::GameController(const GameController& other)
+    : QObject(other.parent()),
+      m_libraryLoader(new LibraryLoader(this)),
+      m_currentGameType(other.m_currentGameType),
+      m_gameTimer(new QTimer(this)),
+      m_gameStarted(other.m_gameStarted),
+      m_gamePaused(other.m_gamePaused),
+      m_pressedKeys(other.m_pressedKeys) {
+  connect(m_gameTimer, &QTimer::timeout, this, &GameController::updateGame);
+  
+  if (other.m_libraryLoader->isLoaded()) {
+    m_libraryLoader->loadGame(other.m_currentGameType);
+  }
+}
+
+GameController& GameController::operator=(const GameController& other) {
+  if (this != &other) {
+    QObject::operator=(other);
+    
+    m_currentGameType = other.m_currentGameType;
+    m_gameStarted = other.m_gameStarted;
+    m_gamePaused = other.m_gamePaused;
+    m_pressedKeys = other.m_pressedKeys;
+    
+    if (other.m_libraryLoader->isLoaded()) {
+      m_libraryLoader->loadGame(other.m_currentGameType);
+    } else {
+      m_libraryLoader->unloadGame();
+    }
+    
+    if (m_gameStarted && !m_gamePaused) {
+      m_gameTimer->start(600);
+    } else {
+      m_gameTimer->stop();
+    }
+  }
+  return *this;
+}
+
+GameController::GameController(GameController&& other) noexcept
+    : QObject(other.parent()),
+      m_libraryLoader(other.m_libraryLoader),
+      m_currentGameType(other.m_currentGameType),
+      m_gameTimer(other.m_gameTimer),
+      m_gameStarted(other.m_gameStarted),
+      m_gamePaused(other.m_gamePaused),
+      m_pressedKeys(std::move(other.m_pressedKeys)) {
+  
+  if (m_libraryLoader) {
+    m_libraryLoader->setParent(this);
+  }
+  if (m_gameTimer) {
+    m_gameTimer->setParent(this);
+    connect(m_gameTimer, &QTimer::timeout, this, &GameController::updateGame);
+  }
+  
+  other.m_libraryLoader = nullptr;
+  other.m_gameTimer = nullptr;
+  other.m_gameStarted = false;
+  other.m_gamePaused = false;
+}
+
+GameController& GameController::operator=(GameController&& other) noexcept {
+  if (this != &other) {
+    unloadGame();
+    
+    m_libraryLoader = other.m_libraryLoader;
+    m_gameTimer = other.m_gameTimer;
+    m_currentGameType = other.m_currentGameType;
+    m_gameStarted = other.m_gameStarted;
+    m_gamePaused = other.m_gamePaused;
+    m_pressedKeys = std::move(other.m_pressedKeys);
+    
+    if (m_libraryLoader) {
+      m_libraryLoader->setParent(this);
+    }
+    if (m_gameTimer) {
+      m_gameTimer->setParent(this);
+      connect(m_gameTimer, &QTimer::timeout, this, &GameController::updateGame);
+    }
+    
+    other.m_libraryLoader = nullptr;
+    other.m_gameTimer = nullptr;
+    other.m_gameStarted = false;
+    other.m_gamePaused = false;
+  }
+  return *this;
+}
