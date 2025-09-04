@@ -146,12 +146,12 @@ class MainWindow : public QMainWindow {
   void updateUIForGameType(GameType gameType);
 
   GameController* m_gameController; /**< Контроллер игры */
-  GameWidget* m_gameWidget;         /**< Виджет игрового поля */
+  GameWidget* m_gameWidget; /**< Виджет игрового поля */
 
-  QWidget* m_infoPanel;        /**< Панель информации */
-  QLabel* m_scoreLabel;        /**< Метка для отображения очков */
-  QLabel* m_highScoreLabel;    /**< Метка для отображения рекорда */
-  QLabel* m_levelLabel;        /**< Метка для отображения уровня */
+  QWidget* m_infoPanel; /**< Панель информации */
+  QLabel* m_scoreLabel; /**< Метка для отображения очков */
+  QLabel* m_highScoreLabel; /**< Метка для отображения рекорда */
+  QLabel* m_levelLabel; /**< Метка для отображения уровня */
   QLabel* m_nextLabel;         /**< Метка "Next" для Tetris */
   QWidget* m_nextFigureWidget; /**< Виджет для отображения следующей фигуры */
 
@@ -159,7 +159,7 @@ class MainWindow : public QMainWindow {
   QPushButton* m_pauseButton; /**< Кнопка Pause */
   QPushButton* m_quitButton;  /**< Кнопка Quit */
 
-  QWidget* m_centralWidget;  /**< Центральный виджет окна */
+  QWidget* m_centralWidget; /**< Центральный виджет окна */
   QHBoxLayout* m_mainLayout; /**< Основной горизонтальный лейаут */
 
   GameType m_currentGameType; /**< Текущий выбранный тип игры */

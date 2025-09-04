@@ -6,7 +6,7 @@
  * стартового экрана, границ, поля, информации и состояния паузы.
  */
 
-#include "../../../include/gui/cli/render.h"
+#include "../../include/gui/cli/render.h"
 
 #include <ncurses.h>
 
@@ -67,7 +67,7 @@ void render_game(const GameInfo_t *info) {
   mvprintw(8, 25, "Score: %d", info->score);
   mvprintw(9, 25, "High:  %d", info->high_score);
   mvprintw(10, 25, "Level: %d", info->level);
-  
+
   mvprintw(12, 25, "Speed: %d", info->speed);
 
   refresh();
@@ -89,7 +89,8 @@ void renderStartScreen() {
            "Space/Action: Rotate/Speed up");
   mvprintw(SCREEN_CENTER_Y + 4, SCREEN_CENTER_X - 10, "P          : Pause");
   mvprintw(SCREEN_CENTER_Y + 5, SCREEN_CENTER_X - 10, "Q          : Quit");
-  mvprintw(SCREEN_CENTER_Y + 6, SCREEN_CENTER_X - 10, "Hold keys  : Accelerate (Snake)");
+  mvprintw(SCREEN_CENTER_Y + 6, SCREEN_CENTER_X - 10,
+           "Hold keys  : Accelerate (Snake)");
 
   refresh();
 }

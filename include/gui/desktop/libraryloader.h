@@ -26,11 +26,13 @@ struct GameAPI {
   void* lib_handle = nullptr; /**< Хэндл библиотеки */
   void (*userInput)(UserAction_t action,
                     bool hold) = nullptr; /**< Функция обработки ввода */
-  GameInfo_t (*updateState)(void) =
+  GameInfo_t (*updateCurrentState)(void) =
       nullptr; /**< Функция получения текущего состояния игры */
   bool (*isOver)(void) = nullptr; /**< Функция проверки окончания игры */
-  bool valid = false;             /**< Флаг корректной загрузки */
-  QString error;                  /**< Сообщение об ошибке при загрузке */
+  void (*freeGameInfo)(GameInfo_t* info) =
+      nullptr; /**< Функция освобождения памяти GameInfo_t */
+  bool valid = false; /**< Флаг корректной загрузки */
+  QString error; /**< Сообщение об ошибке при загрузке */
 };
 
 /**

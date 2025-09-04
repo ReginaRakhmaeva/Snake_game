@@ -17,7 +17,7 @@
 
 #include <stdio.h>
 #define SCORE_FILE "tetris_highscore.txt"
-#include "../../../include/brickgame/common/types.h"
+#include "../common/types.h"
 
 /**
  * @brief Статус выполнения игровой операции.

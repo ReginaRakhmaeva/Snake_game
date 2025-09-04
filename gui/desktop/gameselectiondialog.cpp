@@ -15,7 +15,7 @@
  * версии игры для выбора режима игры перед стартом.
  */
 
-#include "../../../include/gui/desktop/gameselectiondialog.h"
+#include "../../include/gui/desktop/gameselectiondialog.h"
 
 #include <QApplication>
 #include <QCloseEvent>

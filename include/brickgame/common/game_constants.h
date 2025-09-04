@@ -18,10 +18,10 @@ extern "C" {
 #endif
 
 /// Ширина игрового поля (в ячейках).
-static const int kGameWidth = 10;   
+static const int kGameWidth = 10;
 
 /// Высота игрового поля (в ячейках).
-static const int kGameHeight = 20; 
+static const int kGameHeight = 20;
 
 /// Ширина панели информации (в символах/ячейках).
 static const int kInfoPanelWidth = 15;
@@ -33,4 +33,4 @@ static const int kFrameDelayMs = 100;
 }
 #endif
 
-#endif  // BRICKGAME_COMMON_GAME_CONSTANTS_H 
+#endif  // BRICKGAME_COMMON_GAME_CONSTANTS_H

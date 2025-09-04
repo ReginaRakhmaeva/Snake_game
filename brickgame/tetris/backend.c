@@ -6,12 +6,11 @@
  * включая управление фигурами, поле игры, подсчет очков и уровней.
  */
 
-#include "../../../include/brickgame/tetris/backend.h"
+#include "../../include/brickgame/tetris/backend.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 
 #define FIELD_WIDTH 10
 #define FIELD_HEIGHT 20
@@ -294,7 +293,6 @@ BackendStatus backend_handle_input(UserAction_t action, bool hold) {
           }
         }
       } else {
-
         if (!check_collision(0, 1)) current_piece.y += 1;
       }
       break;
@@ -371,19 +369,17 @@ BackendStatus backend_fix_piece(void) {
   return BACKEND_OK;
 }
 
-
 /**
  * @brief Возвращает текущую информацию об игре.
  * @return Структура GameInfo_t с актуальным состоянием игры
  */
-GameInfo_t backend_get_info(void) { 
-
+GameInfo_t backend_get_info(void) {
   for (int i = 0; i < FIGURE_SIZE; ++i) {
     if (info.next[i]) {
       memcpy(info.next[i], next_piece.shape[i], FIGURE_SIZE * sizeof(int));
     }
   }
-  return info; 
+  return info;
 }
 
 /**
@@ -400,7 +396,7 @@ void backend_free_game_info(GameInfo_t *game_info) {
     free(game_info->field);
     game_info->field = NULL;
   }
-  
+
   if (game_info->next) {
     for (int i = 0; i < FIGURE_SIZE; ++i) {
       if (game_info->next[i]) {
@@ -422,3 +418,8 @@ int get_level_speed(int level) {
   if (speed < 80) speed = 80;
   return speed;
 }
+
+/**
+ * @brief Освобождает память, выделенную для GameInfo_t::field.
+ */
+EXPORT void freeGameInfo(GameInfo_t *info) { backend_free_game_info(info); }

@@ -14,7 +14,7 @@
 #ifndef BRICKGAME_TETRIS_FSM_H_
 #define BRICKGAME_TETRIS_FSM_H_
 
-#include "../../../include/brickgame/common/types.h"  // Для UserAction_t
+#include "../common/types.h"
 
 /**
  * @brief Возможные состояния игры.

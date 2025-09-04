@@ -15,7 +15,7 @@
 
 #include <stdbool.h>
 
-#include "../../../include/brickgame/common/types.h"
+#include "../../brickgame/common/types.h"
 #include "app_controller.h"
 
 /**

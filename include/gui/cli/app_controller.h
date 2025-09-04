@@ -36,10 +36,12 @@ typedef struct {
   void (*userInput)(UserAction_t action,
                     bool hold); /**< Указатель на функцию обработки ввода */
   GameInfo_t (*updateState)(
-      void);            /**< Указатель на функцию обновления состояния игры */
+      void); /**< Указатель на функцию обновления состояния игры */
   bool (*isOver)(void); /**< Указатель на функцию проверки завершения игры */
-  bool valid;           /**< Флаг валидности API */
-  char* error;          /**< Сообщение об ошибке (если есть) */
+  void (*freeGameInfo)(GameInfo_t* info); /**< Указатель на функцию освобождения
+                                             памяти GameInfo_t */
+  bool valid;  /**< Флаг валидности API */
+  char* error; /**< Сообщение об ошибке (если есть) */
 } GameAPI;
 
 /**

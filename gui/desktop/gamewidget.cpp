@@ -16,7 +16,7 @@
  * под окно.
  */
 
-#include "../../../include/gui/desktop/gamewidget.h"
+#include "../../include/gui/desktop/gamewidget.h"
 
 #include <QFont>
 #include <QFontMetrics>

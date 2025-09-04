@@ -7,7 +7,7 @@
  * для контроллера игры (restartRequested, quitRequested).
  */
 
-#include "../../../include/gui/desktop/gameoverdialog.h"
+#include "../../include/gui/desktop/gameoverdialog.h"
 
 #include <QApplication>
 

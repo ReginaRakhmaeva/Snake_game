@@ -45,6 +45,8 @@ EXPORT GameInfo_t updateCurrentState();
  */
 EXPORT bool isGameOver();
 
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -12,15 +12,15 @@
  * - определение окончания игры.
  */
 
-#include "../../../include/brickgame/tetris/game.h"
+#include "../../include/brickgame/tetris/game.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../include/brickgame/common/types.h"
-#include "../../../include/brickgame/tetris/backend.h"
-#include "../../../include/brickgame/tetris/fsm.h"
-#include "../../../include/brickgame/tetris/game.h"
+#include "../../include/brickgame/common/types.h"
+#include "../../include/brickgame/tetris/backend.h"
+#include "../../include/brickgame/tetris/fsm.h"
+#include "../../include/brickgame/tetris/game.h"
 
 static GameInfo_t game_info;
 static GameState_t previous_state = STATE_INIT;
@@ -76,8 +76,7 @@ EXPORT GameInfo_t updateCurrentState() {
 
   if (previous_state == STATE_GAME_OVER && state == STATE_RUNNING) {
     reset_game_info();
-  }
-  else if (!game_info.field || state == STATE_INIT) {
+  } else if (!game_info.field || state == STATE_INIT) {
     reset_game_info();
   }
 

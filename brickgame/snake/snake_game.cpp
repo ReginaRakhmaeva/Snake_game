@@ -9,14 +9,14 @@
  * - обработку столкновений и победы/поражения;
  * - сохранение и загрузку рекорда.
  */
-#include "../../../include/brickgame/snake/snake_game.hpp"
+#include "../../include/brickgame/snake/snake_game.hpp"
 
 #include <algorithm>
 #include <fstream>
 #include <random>
 #include <string>
 
-#include "../../../include/brickgame/common/types.h"
+#include "../../include/brickgame/common/types.h"
 
 namespace s21 {
 

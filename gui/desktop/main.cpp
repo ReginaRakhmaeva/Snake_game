@@ -9,7 +9,7 @@
 #include <QApplication>
 #include <QStyleFactory>
 
-#include "../../../include/gui/desktop/mainwindow.h"
+#include "../../include/gui/desktop/mainwindow.h"
 /**
  * @brief Основная функция приложения.
  * @param argc Количество аргументов командной строки

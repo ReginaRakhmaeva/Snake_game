@@ -13,7 +13,7 @@
 #ifndef BRICKGAME_TETRIS_RENDER_H_
 #define BRICKGAME_TETRIS_RENDER_H_
 
-#include "../../../include/brickgame/common/types.h"
+#include "../../brickgame/common/types.h"
 #include "app_controller.h"
 /**
  * @brief Отрисовывает текущее состояние игры.

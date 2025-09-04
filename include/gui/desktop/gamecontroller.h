@@ -1,239 +1,161 @@
 /**
  * @file gamecontroller.h
- * @brief Контроллер игры для GUI на Qt.
+ * @brief Тонкий контроллер игры для GUI на Qt.
  *
- * Класс GameController управляет:
- * - загрузкой/выгрузкой выбранной игры (Tetris, Snake) через LibraryLoader,
- * - состояниями игры (старт, пауза, возобновление, остановка),
- * - обработкой пользовательского ввода и конвертацией клавиш в игровые
- * действия,
- * - синхронизацией игрового цикла через QTimer,
- * - генерацией сигналов Qt для обновления интерфейса.
+ * Класс GameController координирует работу:
+ * - InputHandler - обработка ввода
+ * - GameStateManager - управление состоянием
+ * - TimerManager - управление таймером
+ * - LibraryLoader - загрузка игр
  *
+ * Тонкий контроллер только координирует, не содержит бизнес-логику.
  */
 #ifndef GAMECONTROLLER_H
 #define GAMECONTROLLER_H
 
-#include <QKeyEvent>
 #include <QObject>
-#include <QTimer>
 #include <memory>
-#include <QSet>
-#include <QMap>
 
 #include "../../brickgame/common/types.h"
+#include "inputhandler.h"
 #include "libraryloader.h"
+#include "timermanager.h"
+
 /**
- * @brief Контроллер игры для GUI на Qt.
+ * @brief Тонкий контроллер игры.
  *
- * Управляет загрузкой игр, состояниями игрового процесса,
- * обработкой пользовательского ввода и генерацией сигналов для интерфейса.
+ * Координирует работу специализированных компонентов:
+ * - InputHandler для обработки ввода
+ * - TimerManager для управления таймером
+ * - LibraryLoader для загрузки игр
+ *
+ * Состояние игры получается только из backend FSM через GameInfo_t
  */
 class GameController : public QObject {
   Q_OBJECT
 
  public:
   /**
-   * @brief Конструктор контроллера игры.
-   * @param parent Родительский QObject.
+   * @brief Конструктор.
+   * @param parent Родительский объект Qt
    */
   explicit GameController(QObject* parent = nullptr);
 
   /**
-   * @brief Деструктор контроллера игры.
+   * @brief Деструктор.
    */
   ~GameController();
 
   /**
-   * @brief Конструктор копирования.
-   * @param other Объект для копирования.
-   */
-  GameController(const GameController& other);
-
-  /**
-   * @brief Оператор присваивания копированием.
-   * @param other Объект для копирования.
-   * @return Ссылка на текущий объект.
-   */
-  GameController& operator=(const GameController& other);
-
-  /**
-   * @brief Конструктор перемещения.
-   * @param other Объект для перемещения.
-   */
-  GameController(GameController&& other) noexcept;
-
-  /**
-   * @brief Оператор присваивания перемещением.
-   * @param other Объект для перемещения.
-   * @return Ссылка на текущий объект.
-   */
-  GameController& operator=(GameController&& other) noexcept;
-
-  /**
-   * @brief Загружает игру заданного типа через LibraryLoader.
-   * @param gameType Тип игры (Tetris, Snake).
-   * @return true, если игра успешно загружена, иначе false.
+   * @brief Загружает игру заданного типа.
+   * @param gameType Тип игры
+   * @return true если успешно загружена
    */
   bool loadGame(GameType gameType);
 
   /**
-   * @brief Выгружает текущую игру, останавливает таймер и сбрасывает состояние.
+   * @brief Выгружает текущую игру.
    */
   void unloadGame();
 
   /**
-   * @brief Запускает игру. Если игра уже загружена, инициализирует состояние и
-   * таймер.
+   * @brief Обрабатывает нажатие клавиши.
+   * @param key Код клавиши Qt
    */
-  void startGame();
+  void handleKeyPress(int key);
 
   /**
-   * @brief Ставит игру на паузу.
+   * @brief Обрабатывает отпускание клавиши.
+   * @param key Код клавиши Qt
    */
-  void pauseGame();
+  void handleKeyRelease(int key);
 
   /**
-   * @brief Возобновляет игру после паузы.
+   * @brief Обрабатывает действие от InputHandler.
+   * @param action Действие пользователя
    */
-  void resumeGame();
+  void handleAction(UserAction_t action);
 
   /**
-   * @brief Останавливает игру.
+   * @brief Обрабатывает отпускание клавиши от InputHandler.
+   * @param key Код клавиши Qt
    */
-  void stopGame();
+  void handleKeyReleased(int key);
 
-  /**
-   * @brief Передает действие пользователя в игровую библиотеку.
-   * @param action Действие пользователя.
-   * @param hold Флаг удержания клавиши (по умолчанию false).
-   */
-  void processInput(UserAction_t action, bool hold = false);
   /**
    * @brief Получает текущее состояние игры.
-   * @return GameInfo_t с информацией о поле, очках, уровне и скорости.
+   * @return Состояние игры
    */
   GameInfo_t getCurrentState() const;
 
   /**
    * @brief Проверяет, завершена ли игра.
-   * @return true, если игра окончена, иначе false.
+   * @return true если игра завершена
    */
   bool isGameOver() const;
 
   /**
    * @brief Проверяет, запущена ли игра.
-   * @return true, если игра активна, иначе false.
+   * @return true если игра запущена (не на паузе и не завершена)
    */
   bool isGameStarted() const;
 
   /**
    * @brief Проверяет, находится ли игра на паузе.
-   * @return true, если игра на паузе, иначе false.
+   * @return true если игра на паузе
    */
   bool isGamePaused() const;
 
   /**
-   * @brief Получает текущий тип загруженной игры.
-   * @return GameType (Tetris или Snake).
+   * @brief Получает текущий тип игры.
+   * @return Тип игры
    */
   GameType getCurrentGameType() const;
 
-  /**
-   * @brief Преобразует код клавиши Qt в действие игры.
-   * @param key Код клавиши Qt.
-   * @return UserAction_t соответствующее действие или -1, если клавиша не
-   * распознана.
-   */
-  UserAction_t mapKeyToAction(int key) const;
-
-  /**
-   * @brief Обрабатывает нажатие клавиши пользователем.
-   * @param key Код клавиши Qt.
-   */
-  void handleKeyPress(int key);
-
-  /**
-   * @brief Обрабатывает отпускание клавиши пользователем.
-   * @param key Код клавиши Qt.
-   */
-  void handleKeyRelease(int key);
-
-  /**
-   * @brief Обрабатывает нажатие кнопки "Старт" в интерфейсе.
-   */
-  void handleStartButton();
-
-  /**
-   * @brief Обрабатывает нажатие кнопки "Пауза/Возобновить" в интерфейсе.
-   */
-  void handlePauseButton();
-
-  /**
-   * @brief Обрабатывает нажатие кнопки "Выход" в интерфейсе.
-   */
-  void handleQuitButton();
-
-  /**
-   * @brief Выбирает игру для запуска.
-   * @param gameType Тип игры.
-   */
-  void handleGameSelection(GameType gameType);
-
-  /**
-   * @brief Перезапускает текущую игру.
-   */
-  void handleRestartGame();
-
-  /**
-   * @brief Запрашивает показ меню выбора игры.
-   */
+  // Методы для совместимости с UI
   void showGameSelection();
-
-  /**
-   * @brief Запрашивает закрытие приложения.
-   */
+  void stopGame();
   void closeApplication();
+  void handleRestartGame();
+  void handleGameSelection(GameType gameType);
+  void handleStartButton();
+  void handlePauseButton();
+  void handleQuitButton();
 
  signals:
   void gameStateChanged(
-      const GameInfo_t& state);         /**< Сигнал изменения состояния игры */
-  void gameOver();                      /**< Сигнал завершения игры */
-  void gameWon();                       /**< Сигнал победы */
-  void gamePaused();                    /**< Сигнал постановки на паузу */
-  void gameResumed();                   /**< Сигнал возобновления игры */
-  void gameSelected(GameType gameType); /**< Сигнал выбора игры */
-  void showGameSelectionRequested();    /**< Сигнал запроса меню выбора игры */
-  void applicationCloseRequested(); /**< Сигнал запроса закрытия приложения */
+      const GameInfo_t& state); /**< Изменение состояния игры */
+  void gameOver();              /**< Завершение игры */
+  void gameWon();               /**< Победа */
+  void gamePaused();            /**< Пауза */
+  void gameResumed();           /**< Возобновление */
+  void gameSelected(GameType gameType); /**< Выбор игры */
+  void showGameSelectionRequested(); /**< Запрос меню выбора */
+  void applicationCloseRequested();  /**< Запрос закрытия */
 
  private slots:
   /**
-   * @brief Слот, вызываемый таймером QTimer, обновляет состояние игры.
+   * @brief Обновляет состояние игры по таймеру.
    */
   void updateGame();
 
+ protected:
+  std::unique_ptr<LibraryLoader> m_libraryLoader; /**< Загрузчик библиотек */
+  std::unique_ptr<InputHandler> m_inputHandler; /**< Обработчик ввода */
+  std::unique_ptr<TimerManager> m_timerManager; /**< Менеджер таймера */
+  GameType m_currentGameType; /**< Текущий тип игры */
+  bool m_wasPaused; /**< Предыдущее состояние паузы */
+
  private:
   /**
-   * @brief Вспомогательная функция для копирования состояния объекта.
-   * @param other Объект для копирования.
+   * @brief Инициализирует соединения сигналов.
    */
-  void copyFrom(const GameController& other);
+  void setupConnections();
 
   /**
-   * @brief Вспомогательная функция для очистки ресурсов.
+   * @brief Обновляет состояние игры в библиотеке.
    */
-  void cleanup();
-
-  LibraryLoader* m_libraryLoader; /**< Загрузчик динамических библиотек игры */
-  GameType m_currentGameType;     /**< Текущий тип игры */
-  QTimer* m_gameTimer;            /**< Таймер для игрового цикла */
-  bool m_gameStarted; /**< Флаг состояния игры: запущена/не запущена */
-  bool m_gamePaused;  /**< Флаг состояния игры: на паузе/не на паузе */
-  QSet<int> m_pressedKeys; /**< Множество нажатых клавиш для отслеживания удержания */
-  
-  // Переменные для дебаунсинга клавиш в Tetris
-  QMap<int, qint64> m_lastKeyPressTime; /**< Время последнего нажатия клавиши */
-  static const qint64 KEY_DEBOUNCE_MS = 100; /**< Задержка дебаунсинга в миллисекундах */
+  void updateGameState();
 };
 
 #endif  // GAMECONTROLLER_H

@@ -19,13 +19,15 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 set(DESKTOP_SOURCES
-    src/gui/desktop/main.cpp
-    src/gui/desktop/mainwindow.cpp
-    src/gui/desktop/gamewidget.cpp
-    src/gui/desktop/gamecontroller.cpp
-    src/gui/desktop/libraryloader.cpp
-    src/gui/desktop/gameselectiondialog.cpp
-    src/gui/desktop/gameoverdialog.cpp
+    gui/desktop/main.cpp
+    gui/desktop/mainwindow.cpp
+    gui/desktop/gamewidget.cpp
+    gui/desktop/gamecontroller.cpp
+    gui/desktop/libraryloader.cpp
+    gui/desktop/gameselectiondialog.cpp
+    gui/desktop/gameoverdialog.cpp
+    gui/desktop/inputhandler.cpp
+    gui/desktop/timermanager.cpp
 )
 
 set(DESKTOP_HEADERS
@@ -35,6 +37,8 @@ set(DESKTOP_HEADERS
     include/gui/desktop/libraryloader.h
     include/gui/desktop/gameselectiondialog.h
     include/gui/desktop/gameoverdialog.h
+    include/gui/desktop/inputhandler.h
+    include/gui/desktop/timermanager.h
 )
 
 add_executable(brickgame_desktop ${DESKTOP_SOURCES} ${DESKTOP_HEADERS})

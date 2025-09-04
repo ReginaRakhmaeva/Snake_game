@@ -6,10 +6,10 @@
  * и общим игровым циклом.
  */
 
-#include "../../../include/gui/cli/app_controller.h"
+#include "../../include/gui/cli/app_controller.h"
 
-#include "../../../include/gui/cli/input.h"
-#include "../../../include/gui/cli/render.h"
+#include "../../include/gui/cli/input.h"
+#include "../../include/gui/cli/render.h"
 #define _POSIX_C_SOURCE 200809L
 #include <dlfcn.h>
 #include <ncurses.h>
@@ -57,8 +57,10 @@ GameAPI load_game_lib(GameType game) {
   api.userInput =
       (void (*)(UserAction_t, bool))dlsym(api.lib_handle, "userInput");
   api.updateState =
-      (GameInfo_t (*)(void))dlsym(api.lib_handle, "updateCurrentState");
+      (GameInfo_t(*)(void))dlsym(api.lib_handle, "updateCurrentState");
   api.isOver = (bool (*)(void))dlsym(api.lib_handle, "isGameOver");
+  api.freeGameInfo =
+      (void (*)(GameInfo_t*))dlsym(api.lib_handle, "freeGameInfo");
 
   if (!api.userInput || !api.updateState || !api.isOver) {
     dlclose(api.lib_handle);
@@ -127,7 +129,7 @@ static void game_loop(GameAPI api, GameType game_type) {
     }
 
     api.userInput(action, hold);
-    
+
     GameInfo_t info = api.updateState();
 
     if (!started) {
@@ -141,6 +143,10 @@ static void game_loop(GameAPI api, GameType game_type) {
     }
 
     napms(info.speed);
+
+    if (game_type == GAME_SNAKE && api.freeGameInfo) {
+      api.freeGameInfo(&info);
+    }
   }
 }
 
@@ -162,7 +168,7 @@ void run_app(void) {
     unload_game_lib(api);
     return;
   }
-  
+
   game_loop(api, selected_game);
 
   endwin();

@@ -25,28 +25,44 @@ ifeq ($(OS),Windows_NT)
 endif
 
 # === Исходники ===
-TETRIS_SRC = src/brickgame/tetris/backend.c \
-             src/brickgame/tetris/fsm.c \
-             src/brickgame/tetris/game.c
+TETRIS_SRC = brickgame/tetris/backend.c \
+             brickgame/tetris/fsm.c \
+             brickgame/tetris/game.c
 
-SNAKE_SRC  = src/brickgame/snake/snake_api.cpp \
-             src/brickgame/snake/snake_fsm.cpp \
-             src/brickgame/snake/snake_game.cpp
+SNAKE_SRC  = brickgame/snake/snake_api.cpp \
+             brickgame/snake/snake_fsm.cpp \
+             brickgame/snake/snake_game.cpp
 
-CLI_SRC    = src/gui/cli/main.c \
-             src/gui/cli/input.c \
-             src/gui/cli/render.c \
-             src/gui/cli/app_controller.c
+CLI_SRC    = gui/cli/main.c \
+             gui/cli/input.c \
+             gui/cli/render.c \
+             gui/cli/app_controller.c
 
 # === Библиотеки ===
 LIBTETRIS = libtetris$(SHARED_EXT)
 LIBSNAKE  = libsnake$(SHARED_EXT)
+
+# === Исходники для Qt проекта ===
+DESKTOP_SRC = gui/desktop/main.cpp \
+              gui/desktop/mainwindow.cpp \
+              gui/desktop/gamewidget.cpp \
+              gui/desktop/gamecontroller.cpp \
+              gui/desktop/libraryloader.cpp \
+              gui/desktop/gameselectiondialog.cpp \
+              gui/desktop/gameoverdialog.cpp \
+              gui/desktop/inputhandler.cpp \
+              gui/desktop/timermanager.cpp
 
 # === Qt проект ===
 QT_BUILD_DIR = build_qt
 
 # === Цели ===
 all: $(LIBTETRIS) $(LIBSNAKE) brickgame_cli brickgame_desktop
+
+open_cli: 
+	./brickgame_cli
+open_desktop: 
+	./brickgame_desktop
 
 $(LIBTETRIS): $(TETRIS_SRC)
 	$(CC) $(CFLAGS) $(SHARED_FLAGS) -o $@ $(TETRIS_SRC)
@@ -61,6 +77,8 @@ brickgame_desktop: $(LIBTETRIS) $(LIBSNAKE)
 	@echo "=== Building Qt frontend ==="
 	@mkdir -p build_qt
 	cd build_qt && cmake "$$(pwd)/.." && make
+
+
 
 # === Каталог установки ===
 PREFIX = /usr/local
@@ -100,6 +118,9 @@ clean:
 	# Удаляем исполняемые файлы и библиотеки
 	rm -f libtetris.so libsnake.so brickgame_cli brickgame_desktop
 	
+	rm -rf *.dSYM
+	rm -rf libtetris.dylib.dSYM libsnake.dylib.dSYM brickgame_cli.dSYM brickgame_desktop.dSYM
+	rm -rf *.dylib
 	# Удаляем объектные файлы
 	rm -f *.o
 	
@@ -117,7 +138,7 @@ clean:
 	rm -f test/coverage.info test/coverage_filtered.info
 	rm -rf test/coverage_report test/lcov_report
 	
-	# Удаляем директорию сборки Qt
+	# Удаляем директории сборки Qt
 	rm -rf build_qt
 	
 	# Удаляем документацию и архивы
@@ -125,7 +146,24 @@ clean:
 	rm -rf dist/
 	rm -f Doxyfile
 	
+	# Удаляем macOS служебные файлы
+	find . -name "._*" -type f -delete
+	find . -name ".DS_Store" -type f -delete
+
+
 	@echo "=== Clean completed ==="
+
+
+# === Форматирование кода ===
+format_check:
+	cp ../materials/linters/.clang-format .clang-format
+	find . -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp"  | xargs clang-format -n
+	rm -f .clang-format
+
+format_fix:
+	cp ../materials/linters/.clang-format .clang-format
+	find . -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs clang-format -i
+	rm -f .clang-format
 
 
 # === Тесты ===
@@ -157,13 +195,6 @@ test_tetris: $(LIBTETRIS) $(TEST_TETRIS_SRC)
 # Все тесты
 test: test_snake test_tetris
 	@echo "=== All tests completed ==="
-
-# Все тесты с отчетами покрытия
-test_with_coverage: coverage lcov
-	@echo "=== All tests and coverage reports completed ==="
-	@echo "=== Coverage reports available in: ==="
-	@echo "  - test/coverage_report/index.html"
-	@echo "  - test/lcov_report/index.html"
 
 # Покрытие кода (библиотек)
 coverage:
@@ -233,102 +264,26 @@ dist: clean
 	@mkdir -p dist
 	@VERSION=$$(date +%Y%m%d); \
 	tar -czf dist/brickgame-$$VERSION.tar.gz \
-		--exclude='.git' \
-		--exclude='build_qt' \
-		--exclude='*.gcda' \
-		--exclude='*.gcno' \
-		--exclude='test/*.gcda' \
-		--exclude='test/*.gcno' \
-		--exclude='test/test_snake_bin' \
-		--exclude='test/test_tetris_bin' \
-		--exclude='test/coverage_report' \
-		--exclude='test/lcov_report' \
-		--exclude='test/coverage.info' \
-		--exclude='test/coverage_filtered.info' \
-		--exclude='*.log' \
-		--exclude='*.dSYM' \
-		--exclude='*.o' \
-		--exclude='*.so' \
-		--exclude='*.dylib' \
-		--exclude='*.dll' \
-		--exclude='*.exe' \
-		--exclude='*.app' \
-		--exclude='brickgame_cli' \
-		--exclude='brickgame_desktop' \
-		--exclude='libtetris.so' \
-		--exclude='libsnake.so' \
-		--exclude='libtetris.dylib' \
-		--exclude='libsnake.dylib' \
-		--exclude='libtetris.dll' \
-		--exclude='libsnake.dll' \
-		--exclude='snake_highscore.txt' \
-		--exclude='tetris_highscore.txt' \
+		--exclude='.gitkeep' \
 		--exclude='dist' \
-		--exclude='doc' \
-		--exclude='CMakeCache.txt' \
-		--exclude='CMakeFiles' \
-		--exclude='cmake_install.cmake' \
-		--exclude='Makefile.cmake' \
-		--exclude='*.moc' \
-		--exclude='moc_*.cpp' \
-		--exclude='ui_*.h' \
-		--exclude='qrc_*.cpp' \
-		--exclude='*_autogen' \
-		--exclude='.DS_Store' \
-		--exclude='Thumbs.db' \
-		--exclude='*~' \
-		--exclude='.#*' \
-		--exclude='#*#' \
 		--exclude='.vscode' \
-		--exclude='.idea' \
-		--exclude='*.swp' \
-		--exclude='*.swo' \
-		--exclude='brickgame-*.tar.gz' \
-		--exclude='brickgame-*.zip' \
 		. ; \
 	echo "Distribution archive created: dist/brickgame-$$VERSION.tar.gz"
 
 # === Проверка утечек памяти ===
-valgrind_snake: clean $(LIBSNAKE) $(TEST_SNAKE_SRC)
+valgrind_cli: 
 	@echo "=== Checking Snake library for memory leaks ==="
-	$(CXX) $(CXXFLAGS) -o $(TEST_SNAKE_BIN) $(TEST_SNAKE_SRC) -L. -lsnake -lgtest -lgtest_main -lpthread
-	@if command -v valgrind >/dev/null 2>&1; then \
-		LD_LIBRARY_PATH=. valgrind -s --leak-check=full --track-origins=yes --show-reachable=yes --error-exitcode=1 \
-		--suppressions=valgrind.supp ./$(TEST_SNAKE_BIN); \
-	else \
-		echo "Valgrind not found. Please install valgrind to check for memory leaks."; \
-		LD_LIBRARY_PATH=. ./$(TEST_SNAKE_BIN); \
-	fi
+	valgrind --tool=memcheck --leak-check=yes  ./brickgame_cli 
 
-valgrind_tetris: clean $(LIBTETRIS) $(TEST_TETRIS_SRC)
+
+valgrind_desktop: 
 	@echo "=== Checking Tetris library for memory leaks ==="
-	$(CXX) $(CXXFLAGS) -o $(TEST_TETRIS_BIN) $(TEST_TETRIS_SRC) -L. -ltetris -lgtest -lgtest_main -lpthread
-	@if command -v valgrind >/dev/null 2>&1; then \
-		LD_LIBRARY_PATH=. valgrind -s --leak-check=full --track-origins=yes --show-reachable=yes --error-exitcode=1 \
-		--suppressions=valgrind.supp ./$(TEST_TETRIS_BIN); \
-	else \
-		echo "Valgrind not found. Please install valgrind to check for memory leaks."; \
-		LD_LIBRARY_PATH=. ./$(TEST_TETRIS_BIN); \
-	fi
+	valgrind --tool=memcheck --leak-check=yes  ./brickgame_desktop 
 
 # Проверка утечек для всех компонентов
-valgrind: valgrind_snake valgrind_tetris
+valgrind: valgrind_cli valgrind_desktop
 	@echo "=== All memory leak checks completed ==="
 
-# === Статический анализ кода ===
-# Проверка с помощью cppcheck
-cppcheck:
-	@echo "=== Running static analysis with cppcheck ==="
-	@if command -v cppcheck >/dev/null 2>&1; then \
-		echo "Checking C files..."; \
-		cppcheck --enable=all --std=c11 --language=c --suppress=missingIncludeSystem \
-		src/brickgame/tetris/*.c src/gui/cli/*.c; \
-		echo "Checking C++ files..."; \
-		cppcheck --enable=all --std=c++20 --language=c++ --suppress=missingIncludeSystem \
-		src/brickgame/snake/*.cpp include/; \
-	else \
-		echo "Cppcheck not found. Please install cppcheck to run static analysis."; \
-	fi
 
-.PHONY: all clean install uninstall dvi dist snake_qt test_snake test_tetris test coverage lcov clean_libs valgrind_snake valgrind_tetris valgrind cppcheck 
+.PHONY: all clean install uninstall dvi dist snake_qt test_snake test_tetris test coverage lcov clean_libs valgrind format_check format_fix
 
